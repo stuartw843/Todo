@@ -69,7 +69,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 5px;
-            cursor: grab;
         }
 
         li.dragging {
@@ -78,6 +77,11 @@
 
         li span {
             flex: 1;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            margin-right: 10px;
         }
 
         li button {
@@ -188,7 +192,11 @@
                     taskElement = document.createElement('li');
                     taskElement.id = task.id;
                     taskElement.setAttribute('draggable', 'true');
-                    taskElement.innerHTML = `<span>${task.text}</span><button data-id="${task.id}">Delete</button>`;
+                    taskElement.innerHTML = `
+                        <span class="drag-handle">☰</span>
+                        <span>${task.text}</span>
+                        <button data-id="${task.id}">Delete</button>
+                    `;
                     taskElement.addEventListener('dragstart', handleDragStart);
                     taskElement.addEventListener('dragover', handleDragOver);
                     taskElement.addEventListener('drop', handleDrop);
@@ -219,10 +227,14 @@
             }
 
             function handleDragStart(e) {
-                draggedItem = e.target;
-                setTimeout(() => {
-                    e.target.classList.add('dragging');
-                }, 0);
+                if (e.target.classList.contains('drag-handle')) {
+                    draggedItem = e.target.parentNode;
+                    setTimeout(() => {
+                        draggedItem.classList.add('dragging');
+                    }, 0);
+                } else {
+                    e.preventDefault();
+                }
             }
 
             function handleDragOver(e) {
@@ -238,13 +250,19 @@
 
             function handleDrop(e) {
                 e.preventDefault();
-                draggedItem = null;
-                updateTaskOrder();
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging');
+                    draggedItem = null;
+                    updateTaskOrder();
+                }
             }
 
             function handleDragEnd(e) {
-                e.target.classList.remove('dragging');
-                updateTaskOrder();
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging');
+                    draggedItem = null;
+                    updateTaskOrder();
+                }
             }
 
             function getDragAfterElement(container, y) {
