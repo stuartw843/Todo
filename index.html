@@ -135,9 +135,13 @@
             list.addEventListener('click', removeTask);
             shareButton.addEventListener('click', shareList);
 
-            // Load tasks from GUN database
+            // Load tasks from GUN database and listen for changes
             todos.map().on((task, id) => {
-                addTaskToDOM({ text: task.text, id: id });
+                if (task) {
+                    addTaskToDOM({ text: task.text, id: id });
+                } else {
+                    removeTaskFromDOM(id);
+                }
             });
 
             function addTask(e) {
@@ -162,8 +166,14 @@
             function removeTask(e) {
                 if (e.target.tagName === 'BUTTON') {
                     const id = e.target.getAttribute('data-id');
-                    e.target.parentElement.remove();
                     todos.get(id).put(null);
+                }
+            }
+
+            function removeTaskFromDOM(id) {
+                const taskElement = document.getElementById(id);
+                if (taskElement) {
+                    taskElement.remove();
                 }
             }
 
