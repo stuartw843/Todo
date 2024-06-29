@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decentralized To-Do App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 0 0 20px 0;
+        }
+
+        form {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px 0 0 5px;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            background: #28a745;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 0 5px 5px 0;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 10px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        li span {
+            flex: 1;
+        }
+
+        li button {
+            background: #dc3545;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        li button:hover {
+            background: #c82333;
+        }
+
+        #share-button {
+            margin-top: 20px;
+            background: #007bff;
+        }
+
+        #share-button:hover {
+            background: #0056b3;
+        }
+
+        #share-url {
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <form id="todo-form">
+            <input type="text" id="todo-input" placeholder="Enter a new task" required>
+            <button type="submit">Add</button>
+        </form>
+        <ul id="todo-list"></ul>
+        <button id="share-button">Share</button>
+        <p id="share-url"></p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('todo-form');
+            const input = document.getElementById('todo-input');
+            const list = document.getElementById('todo-list');
+            const shareButton = document.getElementById('share-button');
+            const shareUrl = document.getElementById('share-url');
+
+            // Initialize GUN
+            const gun = Gun();
+
+            // Get reference to a specific node in the GUN database
+            const todos = gun.get('todos');
+
+            form.addEventListener('submit', addTask);
+            list.addEventListener('click', removeTask);
+            shareButton.addEventListener('click', shareList);
+
+            // Load tasks from GUN database
+            todos.map().on((task, id) => {
+                addTaskToDOM({ text: task.text, id: id });
+            });
+
+            function addTask(e) {
+                e.preventDefault();
+                const taskText = input.value.trim();
+                if (taskText !== '') {
+                    const id = Gun.text.random();
+                    const task = { text: taskText, id: id };
+                    todos.get(id).put(task);
+                    input.value = '';
+                }
+            }
+
+            function addTaskToDOM(task) {
+                if (document.getElementById(task.id)) return;
+                const li = document.createElement('li');
+                li.id = task.id;
+                li.innerHTML = `<span>${task.text}</span><button data-id="${task.id}">Delete</button>`;
+                list.appendChild(li);
+            }
+
+            function removeTask(e) {
+                if (e.target.tagName === 'BUTTON') {
+                    const id = e.target.getAttribute('data-id');
+                    e.target.parentElement.remove();
+                    todos.get(id).put(null);
+                }
+            }
+
+            function shareList() {
+                shareUrl.textContent = `${window.location.href.split('?')[0]}?peer=${location.host}`;
+            }
+        });
+    </script>
+</body>
+</html>
