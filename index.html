@@ -156,11 +156,15 @@
             }
 
             function addTaskToDOM(task) {
-                if (document.getElementById(task.id)) return;
-                const li = document.createElement('li');
-                li.id = task.id;
-                li.innerHTML = `<span>${task.text}</span><button data-id="${task.id}">Delete</button>`;
-                list.appendChild(li);
+                let taskElement = document.getElementById(task.id);
+                if (!taskElement) {
+                    taskElement = document.createElement('li');
+                    taskElement.id = task.id;
+                    taskElement.innerHTML = `<span>${task.text}</span><button data-id="${task.id}">Delete</button>`;
+                    list.appendChild(taskElement);
+                } else {
+                    taskElement.querySelector('span').textContent = task.text;
+                }
             }
 
             function removeTask(e) {
