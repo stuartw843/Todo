@@ -21,6 +21,8 @@
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
         }
 
         h1 {
@@ -65,10 +67,13 @@
             border-bottom: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            cursor: grab;
         }
 
-        li:last-child {
-            border-bottom: none;
+        li.dragging {
+            opacity: 0.5;
         }
 
         li span {
@@ -91,6 +96,7 @@
         #share-button {
             margin-top: 20px;
             background: #007bff;
+            width: 100%;
         }
 
         #share-button:hover {
@@ -100,6 +106,25 @@
         #share-url {
             margin-top: 10px;
             word-break: break-all;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            form {
+                flex-direction: column;
+            }
+
+            input[type="text"] {
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
+
+            button {
+                border-radius: 5px;
+            }
         }
     </style>
 </head>
@@ -123,6 +148,8 @@
             const shareButton = document.getElementById('share-button');
             const shareUrl = document.getElementById('share-url');
 
+            let draggedItem = null;
+
             // Initialize GUN with a public relay server
             const gun = Gun({
                 peers: ['https://gun-manhattan.herokuapp.com/gun']
@@ -138,7 +165,7 @@
             // Load tasks from GUN database and listen for changes
             todos.map().on((task, id) => {
                 if (task) {
-                    addTaskToDOM({ text: task.text, id: id });
+                    addTaskToDOM({ text: task.text, id: id, order: task.order });
                 } else {
                     removeTaskFromDOM(id);
                 }
@@ -149,7 +176,7 @@
                 const taskText = input.value.trim();
                 if (taskText !== '') {
                     const id = Gun.text.random();
-                    const task = { text: taskText, id: id };
+                    const task = { text: taskText, id: id, order: Date.now() };
                     todos.get(id).put(task);
                     input.value = '';
                 }
@@ -160,11 +187,17 @@
                 if (!taskElement) {
                     taskElement = document.createElement('li');
                     taskElement.id = task.id;
+                    taskElement.setAttribute('draggable', 'true');
                     taskElement.innerHTML = `<span>${task.text}</span><button data-id="${task.id}">Delete</button>`;
+                    taskElement.addEventListener('dragstart', handleDragStart);
+                    taskElement.addEventListener('dragover', handleDragOver);
+                    taskElement.addEventListener('drop', handleDrop);
+                    taskElement.addEventListener('dragend', handleDragEnd);
                     list.appendChild(taskElement);
                 } else {
                     taskElement.querySelector('span').textContent = task.text;
                 }
+                updateTaskOrder();
             }
 
             function removeTask(e) {
@@ -183,6 +216,56 @@
 
             function shareList() {
                 shareUrl.textContent = `${window.location.href.split('?')[0]}?peer=${location.host}`;
+            }
+
+            function handleDragStart(e) {
+                draggedItem = e.target;
+                setTimeout(() => {
+                    e.target.classList.add('dragging');
+                }, 0);
+            }
+
+            function handleDragOver(e) {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(list, e.clientY);
+                const draggingElement = document.querySelector('.dragging');
+                if (afterElement == null) {
+                    list.appendChild(draggingElement);
+                } else {
+                    list.insertBefore(draggingElement, afterElement);
+                }
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                draggedItem = null;
+                updateTaskOrder();
+            }
+
+            function handleDragEnd(e) {
+                e.target.classList.remove('dragging');
+                updateTaskOrder();
+            }
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            function updateTaskOrder() {
+                const tasks = Array.from(list.children);
+                tasks.forEach((task, index) => {
+                    const id = task.id;
+                    todos.get(id).get('order').put(index);
+                });
             }
         });
     </script>
