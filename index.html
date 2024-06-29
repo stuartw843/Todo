@@ -123,8 +123,10 @@
             const shareButton = document.getElementById('share-button');
             const shareUrl = document.getElementById('share-url');
 
-            // Initialize GUN
-            const gun = Gun();
+            // Initialize GUN with a public relay server
+            const gun = Gun({
+                peers: ['https://gun-manhattan.herokuapp.com/gun']
+            });
 
             // Get reference to a specific node in the GUN database
             const todos = gun.get('todos');
@@ -169,64 +171,6 @@
                 shareUrl.textContent = `${window.location.href.split('?')[0]}?peer=${location.host}`;
             }
         });
-    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('todo-form');
-        const input = document.getElementById('todo-input');
-        const list = document.getElementById('todo-list');
-        const shareButton = document.getElementById('share-button');
-        const shareUrl = document.getElementById('share-url');
-
-        // Initialize GUN with a relay server
-        const gun = Gun({
-            peers: ['https://your-relay-peer-server.herokuapp.com/gun']
-        });
-
-        // Get reference to a specific node in the GUN database
-        const todos = gun.get('todos');
-
-        form.addEventListener('submit', addTask);
-        list.addEventListener('click', removeTask);
-        shareButton.addEventListener('click', shareList);
-
-        // Load tasks from GUN database
-        todos.map().on((task, id) => {
-            addTaskToDOM({ text: task.text, id: id });
-        });
-
-        function addTask(e) {
-            e.preventDefault();
-            const taskText = input.value.trim();
-            if (taskText !== '') {
-                const id = Gun.text.random();
-                const task = { text: taskText, id: id };
-                todos.get(id).put(task);
-                input.value = '';
-            }
-        }
-
-        function addTaskToDOM(task) {
-            if (document.getElementById(task.id)) return;
-            const li = document.createElement('li');
-            li.id = task.id;
-            li.innerHTML = `<span>${task.text}</span><button data-id="${task.id}">Delete</button>`;
-            list.appendChild(li);
-        }
-
-        function removeTask(e) {
-            if (e.target.tagName === 'BUTTON') {
-                const id = e.target.getAttribute('data-id');
-                e.target.parentElement.remove();
-                todos.get(id).put(null);
-            }
-        }
-
-        function shareList() {
-            shareUrl.textContent = `${window.location.href.split('?')[0]}?peer=${location.host}`;
-        }
-    });
-</script>
-    
+    </script>
 </body>
 </html>
