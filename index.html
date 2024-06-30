@@ -203,7 +203,7 @@
                     taskElement.addEventListener('dragend', handleDragEnd);
                     list.appendChild(taskElement);
                 } else {
-                    taskElement.querySelector('span').textContent = task.text;
+                    taskElement.querySelector('span:nth-child(2)').textContent = task.text;
                 }
                 updateTaskOrder();
             }
