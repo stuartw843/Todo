@@ -216,9 +216,9 @@
                 taskDiv.dataset.id = task.id;
                 taskDiv.innerHTML = `
                     <div class="task-handle">☰</div>
-                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                            <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                     <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                            <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
                     ${relatedNoteTitle}
                     <button onclick="editTask(${task.id})">Edit</button>
                     <button onclick="deleteTask(${task.id})">Delete</button>
@@ -226,16 +226,19 @@
                 tasksList.appendChild(taskDiv);
             });
 
-            // Initialize Dragula for drag-and-drop sorting
-            dragula([document.getElementById('tasks-list')]).on('drop', function (el) {
-                const newOrder = Array.from(document.getElementById('tasks-list').children).map(child => {
-                    const taskId = parseInt(child.dataset.id);
-                    return tasks.find(task => task.id === taskId);
+            // Initialize Dragula for drag-and-drop sorting if not already initialized
+            if (!window.dragulaInitialized) {
+                dragula([document.getElementById('tasks-list')]).on('drop', function (el) {
+                    const newOrder = Array.from(document.getElementById('tasks-list').children).map(child => {
+                        const taskId = parseInt(child.dataset.id);
+                        return tasks.find(task => task.id === taskId);
+                    });
+                    tasks = newOrder;
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    displayTasks();
                 });
-                tasks = newOrder;
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                displayTasks();
-            });
+                window.dragulaInitialized = true;
+            }
         }
 
         function showTaskForm(task) {
@@ -311,3 +314,5 @@
     </script>
 </body>
 </html>
+
+                   
