@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LocalStorage To-Do App</title>
     <style>
+        /* Existing styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -32,14 +33,16 @@
         form {
             display: flex;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        input[type="text"] {
-            flex: 1;
+        input[type="text"], input[type="date"] {
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ddd;
-            border-radius: 5px 0 0 5px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: calc(50% - 10px);
         }
 
         button {
@@ -49,7 +52,8 @@
             background: #28a745;
             color: #fff;
             cursor: pointer;
-            border-radius: 0 5px 5px 0;
+            border-radius: 5px;
+            width: 100%;
         }
 
         button:hover {
@@ -121,8 +125,8 @@
                 flex-direction: column;
             }
 
-            input[type="text"] {
-                border-radius: 5px;
+            input[type="text"], input[type="date"] {
+                width: 100%;
                 margin-bottom: 10px;
             }
 
@@ -137,6 +141,7 @@
         <h1>To-Do List</h1>
         <form id="todo-form">
             <input type="text" id="todo-input" placeholder="Enter a new task" required>
+            <input type="date" id="todo-due-date">
             <button type="submit">Add</button>
         </form>
         <ul id="todo-list"></ul>
@@ -146,6 +151,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('todo-form');
             const input = document.getElementById('todo-input');
+            const dueDateInput = document.getElementById('todo-due-date');
             const list = document.getElementById('todo-list');
 
             // Initialize SortableJS on the list
@@ -164,12 +170,14 @@
             function addTask(e) {
                 e.preventDefault();
                 const taskText = input.value.trim();
+                const dueDate = dueDateInput.value;
                 if (taskText !== '') {
                     const id = Date.now().toString();
-                    const task = { text: taskText, id: id };
+                    const task = { text: taskText, id: id, dueDate: dueDate };
                     addTaskToDOM(task);
                     saveTaskToLocalStorage(task);
                     input.value = '';
+                    dueDateInput.value = '';
                 }
             }
 
@@ -181,11 +189,13 @@
                     taskElement.innerHTML = `
                         <span class="drag-handle">☰</span>
                         <span>${task.text}</span>
+                        <span>${task.dueDate ? `Due: ${task.dueDate}` : ''}</span>
                         <button data-id="${task.id}">Delete</button>
                     `;
                     list.appendChild(taskElement);
                 } else {
                     taskElement.querySelector('span:nth-child(2)').textContent = task.text;
+                    taskElement.querySelector('span:nth-child(3)').textContent = task.dueDate ? `Due: ${task.dueDate}` : '';
                 }
             }
 
@@ -228,7 +238,7 @@
 
             function updateTaskOrder() {
                 const tasks = Array.from(list.children).map((task, index) => {
-                    return { id: task.id, text: task.querySelector('span:nth-child(2)').textContent, order: index };
+                    return { id: task.id, text: task.querySelector('span:nth-child(2)').textContent, dueDate: task.querySelector('span:nth-child(3)').textContent.replace('Due: ', ''), order: index };
                 });
                 localStorage.setItem('tasks', JSON.stringify(tasks));
             }
