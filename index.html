@@ -4,22 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes and Tasks App</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@material-ui/core@4.11.4/umd/material-ui.production.min.js">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f5f7;
+        }
         .task-done {
             text-decoration: line-through;
-        }
-        .task-controls {
-            display: flex;
-            flex-direction: column;
-            margin-right: 10px;
-        }
-        .task-controls button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            margin: 2px 0;
         }
         .hidden {
             display: none;
@@ -38,7 +31,8 @@
             flex: 1;
             border: 1px solid #ccc;
             padding: 10px;
-            background-color: #f9f9f9;
+            background-color: #ffffff;
+            border-radius: 4px;
         }
         .kanban-column h3 {
             text-align: center;
@@ -47,378 +41,265 @@
     </style>
 </head>
 <body>
-    <section class="section">
-        <div class="container">
-            <h1 class="title">Notes and Tasks App</h1>
-            <div class="buttons">
-                <button class="button is-link" onclick="showPage('notes')">Notes</button>
-                <button class="button is-link" onclick="showPage('tasks')">Tasks</button>
-                <button class="button is-link" onclick="showPage('kanban')">Kanban</button>
-            </div>
-            <div id="notes-page">
-                <h2 class="subtitle">Notes</h2>
-                <div id="notes-list"></div>
-                <div class="buttons">
-                    <button class="button is-primary" onclick="showNoteForm()">Add Note</button>
-                    <button class="button is-danger" onclick="deleteAllNotesAndTasks()">Delete All Notes and Tasks</button>
-                </div>
-                <div id="note-form" class="box hidden">
-                    <h3 class="subtitle">New Note</h3>
-                    <div class="field">
-                        <label class="label">Title</label>
-                        <div class="control">
-                            <input type="text" class="input" id="note-title" placeholder="Title">
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Content</label>
-                        <div class="control">
-                            <textarea class="textarea" id="note-content" placeholder="Content"></textarea>
-                        </div>
-                    </div>
-                    <div id="note-tasks"></div>
-                    <div class="buttons">
-                        <button class="button is-link" onclick="addNoteTask()">Add Task</button>
-                        <button class="button is-success" onclick="saveNote()">Save Note</button>
-                        <button class="button" onclick="hideNoteForm()">Cancel</button>
-                    </div>
-                </div>
-            </div>
-            <div id="tasks-page" class="hidden">
-                <h2 class="subtitle">Tasks</h2>
-                <div id="tasks-list" class="box"></div>
-                <button class="button is-primary" onclick="showTaskForm()">Add Task</button>
-                <div id="task-form" class="box hidden">
-                    <h3 class="subtitle">New Task</h3>
-                    <div class="field">
-                        <label class="label">Description</label>
-                        <div class="control">
-                            <input type="text" class="input" id="task-desc" placeholder="Description">
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Due Date</label>
-                        <div class="control">
-                            <input type="date" class="input" id="task-due-date">
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Status</label>
-                        <div class="control">
-                            <div class="select">
-                                <select id="task-status">
-                                    <option value="todo">To Do</option>
-                                    <option value="high-priority">High Priority</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="buttons">
-                        <button class="button is-success" onclick="saveTask()">Save Task</button>
-                        <button class="button" onclick="hideTaskForm()">Cancel</button>
-                    </div>
-                </div>
-            </div>
-            <div id="kanban-page" class="hidden">
-                <h2 class="subtitle">Kanban Board</h2>
-                <div class="kanban-board">
-                    <div class="kanban-column" id="todo-column">
-                        <h3>To Do</h3>
-                        <div id="todo-tasks"></div>
-                    </div>
-                    <div class="kanban-column" id="high-priority-column">
-                        <h3>High Priority</h3>
-                        <div id="high-priority-tasks"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
+    <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/react@17/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@material-ui/core@4.11.4/umd/material-ui.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
     <script>
-        let notes = JSON.parse(localStorage.getItem('notes')) || [];
-        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-        let editingNoteId = null;
-        let editingTaskId = null;
+        const { useState, useEffect } = React;
+        const { AppBar, Tabs, Tab, Typography, Box, Button, TextField, Checkbox, FormControlLabel, MenuItem, Select, InputLabel, FormControl, Container, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } = MaterialUI;
         const converter = new showdown.Converter();
 
-        function showPage(page) {
-            document.getElementById('notes-page').classList.add('hidden');
-            document.getElementById('tasks-page').classList.add('hidden');
-            document.getElementById('kanban-page').classList.add('hidden');
-            document.getElementById(page + '-page').classList.remove('hidden');
-            if (page === 'notes') {
-                displayNotes();
-            } else if (page === 'tasks') {
-                displayTasks();
-            } else if (page === 'kanban') {
-                displayKanban();
-            }
-        }
+        function App() {
+            const [notes, setNotes] = useState(JSON.parse(localStorage.getItem('notes')) || []);
+            const [tasks, setTasks] = useState(JSON.parse(localStorage.getItem('tasks')) || []);
+            const [currentPage, setCurrentPage] = useState('notes');
+            const [noteFormOpen, setNoteFormOpen] = useState(false);
+            const [taskFormOpen, setTaskFormOpen] = useState(false);
+            const [editingNote, setEditingNote] = useState(null);
+            const [editingTask, setEditingTask] = useState(null);
 
-        function displayNotes() {
-            const notesList = document.getElementById('notes-list');
-            notesList.innerHTML = '';
-            notes.forEach(note => {
-                const noteDiv = document.createElement('div');
-                noteDiv.classList.add('box', 'note');
-                noteDiv.innerHTML = `
-                    <h3 class="title is-4">${note.title}</h3>
-                    <div class="content note-content">${converter.makeHtml(note.content)}</div>
-                    <ul>
-                        ${note.tasks.map(taskId => {
-                            const task = tasks.find(t => t.id === taskId);
-                            return `<li class="task">
-                                <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
-                                <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                                <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                                <button class="button is-small" onclick="editTask(${task.id})">Edit</button>
-                                <button class="button is-small is-danger" onclick="deleteTask(${task.id})">Delete</button>
-                            </li>`;
-                        }).join('')}
-                    </ul>
-                    <div class="buttons">
-                        <button class="button is-link" onclick="editNote(${note.id})">Edit</button>
-                        <button class="button is-danger" onclick="deleteNote(${note.id})">Delete</button>
-                    </div>
-                `;
-                notesList.appendChild(noteDiv);
-            });
-        }
-
-        function showNoteForm(note) {
-            document.getElementById('note-form').classList.remove('hidden');
-            document.getElementById('note-tasks').innerHTML = '';
-            if (note) {
-                document.getElementById('note-title').value = note.title;
-                document.getElementById('note-content').value = note.content;
-                note.tasks.forEach(taskId => {
-                    const task = tasks.find(t => t.id === taskId);
-                    addNoteTask(task);
-                });
-                editingNoteId = note.id;
-            } else {
-                document.getElementById('note-title').value = '';
-                document.getElementById('note-content').value = '';
-                editingNoteId = null;
-            }
-        }
-
-        function hideNoteForm() {
-            document.getElementById('note-form').classList.add('hidden');
-        }
-
-        function saveNote() {
-            const title = document.getElementById('note-title').value;
-            const content = document.getElementById('note-content').value;
-            const taskElements = document.querySelectorAll('#note-tasks .task');
-            const noteTasks = [];
-            taskElements.forEach(taskElement => {
-                const taskId = taskElement.dataset.id;
-                if (taskId) {
-                    noteTasks.push(parseInt(taskId));
-                } else {
-                    const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: 'todo' };
-                    tasks.push(task);
-                    noteTasks.push(task.id);
-                }
-            });
-            if (editingNoteId) {
-                notes = notes.map(n => n.id === editingNoteId ? { id: editingNoteId, title, content, tasks: noteTasks } : n);
-            } else {
-                const note = { id: Date.now(), title, content, tasks: noteTasks };
-                notes.push(note);
-            }
-            localStorage.setItem('notes', JSON.stringify(notes));
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            hideNoteForm();
-            displayNotes();
-            displayTasks();
-            displayKanban();
-        }
-
-        function addNoteTask(task) {
-            const noteTasksDiv = document.getElementById('note-tasks');
-            const taskDiv = document.createElement('div');
-            taskDiv.classList.add('field', 'is-grouped');
-            taskDiv.dataset.id = task ? task.id : '';
-            taskDiv.innerHTML = `
-                <div class="control">
-                    <input type="text" class="input task-desc" placeholder="Task description" value="${task ? task.description : ''}">
-                </div>
-                <div class="control">
-                    <input type="date" class="input task-due-date" value="${task ? task.dueDate : ''}">
-                </div>
-            `;
-            noteTasksDiv.appendChild(taskDiv);
-        }
-
-        function editNote(id) {
-            const note = notes.find(n => n.id === id);
-            showNoteForm(note);
-        }
-
-        function deleteNote(id) {
-            notes = notes.filter(n => n.id !== id);
-            localStorage.setItem('notes', JSON.stringify(notes));
-            displayNotes();
-            displayTasks();
-            displayKanban();
-        }
-
-        function displayTasks() {
-            const tasksList = document.getElementById('tasks-list');
-            tasksList.innerHTML = '';
-            tasks.forEach((task, index) => {
-                const relatedNote = notes.find(note => note.tasks.includes(task.id));
-                const relatedNoteTitle = relatedNote ? ` (Note: ${relatedNote.title})` : '';
-                const taskDiv = document.createElement('div');
-                taskDiv.classList.add('box', 'task');
-                taskDiv.dataset.id = task.id;
-                taskDiv.innerHTML = `
-                    <div class="task-controls">
-                        <button class="button is-small is-link" onclick="moveTaskUp(${index})">▲</button>
-                        <button class="button is-small is-link" onclick="moveTaskDown(${index})">▼</button>
-                    </div>
-                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
-                    <span class="task-desc ${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                    ${relatedNoteTitle}
-                    <div class="buttons">
-                        <button class="button is-small is-link" onclick="editTask(${task.id})">Edit</button>
-                        <button class="button is-small is-danger" onclick="deleteTask(${task.id})">Delete</button>
-                    </div>
-                `;
-                tasksList.appendChild(taskDiv);
-            });
-        }
-
-        function moveTaskUp(index) {
-            if (index <= 0) return; // Already at the top
-            const temp = tasks[index];
-            tasks[index] = tasks[index - 1];
-            tasks[index - 1] = temp;
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            displayTasks();
-            displayNotes();
-            displayKanban();
-        }
-
-        function moveTaskDown(index) {
-            if (index >= tasks.length - 1) return; // Already at the bottom
-            const temp = tasks[index];
-            tasks[index] = tasks[index + 1];
-            tasks[index + 1] = temp;
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            displayTasks();
-            displayNotes();
-            displayKanban();
-        }
-
-        function showTaskForm(task) {
-            document.getElementById('task-form').classList.remove('hidden');
-            if (task) {
-                document.getElementById('task-desc').value = task.description;
-                document.getElementById('task-due-date').value = task.dueDate;
-                document.getElementById('task-status').value = task.status;
-                editingTaskId = task.id;
-            } else {
-                document.getElementById('task-desc').value = '';
-                document.getElementById('task-due-date').value = '';
-                document.getElementById('task-status').value = 'todo';
-                editingTaskId = null;
-            }
-        }
-
-        function hideTaskForm() {
-            document.getElementById('task-form').classList.add('hidden');
-        }
-
-        function saveTask() {
-            const description = document.getElementById('task-desc').value;
-            const dueDate = document.getElementById('task-due-date').value;
-            const status = document.getElementById('task-status').value;
-            if (editingTaskId) {
-                tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate, status } : t);
-            } else {
-                const task = { id: Date.now() + Math.random(), description, isDone: false, dueDate, status };
-                tasks.push(task);
-            }
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            hideTaskForm();
-            displayTasks();
-            displayNotes();
-            displayKanban();
-        }
-
-        function toggleTaskDone(id) {
-            const task = tasks.find(t => t.id === id);
-            task.isDone = !task.isDone;
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            displayTasks();
-            displayNotes();
-            displayKanban();
-        }
-
-        function editTask(id) {
-            const task = tasks.find(t => t.id === id);
-            showTaskForm(task);
-        }
-
-        function deleteTask(id) {
-            tasks = tasks.filter(t => t.id !== id);
-            notes = notes.map(note => {
-                note.tasks = note.tasks.filter(taskId => taskId !== id);
-                return note;
-            });
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            localStorage.setItem('notes', JSON.stringify(notes));
-            displayTasks();
-            displayNotes();
-            displayKanban();
-        }
-
-        function deleteAllNotesAndTasks() {
-            if (confirm("Are you sure you want to delete all notes and tasks? This action cannot be undone.")) {
-                notes = [];
-                tasks = [];
+            useEffect(() => {
                 localStorage.setItem('notes', JSON.stringify(notes));
+            }, [notes]);
+
+            useEffect(() => {
                 localStorage.setItem('tasks', JSON.stringify(tasks));
-                displayNotes();
-                displayTasks();
-                displayKanban();
-            }
+            }, [tasks]);
+
+            const handleTabChange = (event, newValue) => {
+                setCurrentPage(newValue);
+            };
+
+            const handleNoteFormOpen = (note = null) => {
+                setEditingNote(note);
+                setNoteFormOpen(true);
+            };
+
+            const handleNoteFormClose = () => {
+                setNoteFormOpen(false);
+            };
+
+            const handleTaskFormOpen = (task = null) => {
+                setEditingTask(task);
+                setTaskFormOpen(true);
+            };
+
+            const handleTaskFormClose = () => {
+                setTaskFormOpen(false);
+            };
+
+            const saveNote = (title, content, noteTasks) => {
+                const noteId = editingNote ? editingNote.id : Date.now();
+                const newNote = { id: noteId, title, content, tasks: noteTasks };
+                setNotes(prevNotes => editingNote ? prevNotes.map(n => n.id === noteId ? newNote : n) : [...prevNotes, newNote]);
+                handleNoteFormClose();
+            };
+
+            const saveTask = (description, dueDate, status) => {
+                const taskId = editingTask ? editingTask.id : Date.now();
+                const newTask = { id: taskId, description, dueDate, status: status || 'todo', isDone: false };
+                setTasks(prevTasks => editingTask ? prevTasks.map(t => t.id === taskId ? newTask : t) : [...prevTasks, newTask]);
+                handleTaskFormClose();
+            };
+
+            const deleteNote = (id) => {
+                setNotes(prevNotes => prevNotes.filter(n => n.id !== id));
+                setTasks(prevTasks => prevTasks.filter(t => !notes.find(note => note.tasks.includes(t.id))));
+            };
+
+            const deleteTask = (id) => {
+                setTasks(prevTasks => prevTasks.filter(t => t.id !== id));
+                setNotes(prevNotes => prevNotes.map(note => ({ ...note, tasks: note.tasks.filter(taskId => taskId !== id) })));
+            };
+
+            const toggleTaskDone = (id) => {
+                setTasks(prevTasks => prevTasks.map(t => t.id === id ? { ...t, isDone: !t.isDone } : t));
+            };
+
+            const renderNotes = () => (
+                <Container>
+                    {notes.map(note => (
+                        <Paper key={note.id} style={{ margin: '20px 0', padding: '20px' }}>
+                            <Typography variant="h5">{note.title}</Typography>
+                            <Typography variant="body1" className="note-content" dangerouslySetInnerHTML={{ __html: converter.makeHtml(note.content) }} />
+                            <Box>
+                                {note.tasks.map(taskId => {
+                                    const task = tasks.find(t => t.id === taskId);
+                                    return (
+                                        <Box key={task.id} display="flex" alignItems="center">
+                                            <Checkbox checked={task.isDone} onChange={() => toggleTaskDone(task.id)} />
+                                            <Typography variant="body1" className={task.isDone ? 'task-done' : ''}>{task.description}</Typography>
+                                            <Typography variant="body2" style={{ marginLeft: 'auto' }}>{task.dueDate}</Typography>
+                                            <Button onClick={() => handleTaskFormOpen(task)}>Edit</Button>
+                                            <Button onClick={() => deleteTask(task.id)} color="secondary">Delete</Button>
+                                        </Box>
+                                    );
+                                })}
+                            </Box>
+                            <Box display="flex" justifyContent="space-between" marginTop="20px">
+                                <Button onClick={() => handleNoteFormOpen(note)}>Edit</Button>
+                                <Button onClick={() => deleteNote(note.id)} color="secondary">Delete</Button>
+                            </Box>
+                        </Paper>
+                    ))}
+                </Container>
+            );
+
+            const renderTasks = () => (
+                <Container>
+                    {tasks.map(task => (
+                        <Paper key={task.id} style={{ margin: '20px 0', padding: '20px' }}>
+                            <Box display="flex" alignItems="center">
+                                <Checkbox checked={task.isDone} onChange={() => toggleTaskDone(task.id)} />
+                                <Typography variant="body1" className={task.isDone ? 'task-done' : ''}>{task.description}</Typography>
+                                <Typography variant="body2" style={{ marginLeft: 'auto' }}>{task.dueDate}</Typography>
+                                <Typography variant="body2" style={{ marginLeft: '10px' }}>{task.status}</Typography>
+                                <Button onClick={() => handleTaskFormOpen(task)}>Edit</Button>
+                                <Button onClick={() => deleteTask(task.id)} color="secondary">Delete</Button>
+                            </Box>
+                        </Paper>
+                    ))}
+                </Container>
+            );
+
+            const renderKanban = () => (
+                <Container className="kanban-board">
+                    <Box className="kanban-column">
+                        <Typography variant="h6">To Do</Typography>
+                        {tasks.filter(t => t.status === 'todo').map(task => (
+                            <Paper key={task.id} style={{ margin: '10px 0', padding: '10px' }}>
+                                <Box display="flex" alignItems="center">
+                                    <Checkbox checked={task.isDone} onChange={() => toggleTaskDone(task.id)} />
+                                    <Typography variant="body1" className={task.isDone ? 'task-done' : ''}>{task.description}</Typography>
+                                    <Typography variant="body2" style={{ marginLeft: 'auto' }}>{task.dueDate}</Typography>
+                                    <Button onClick={() => handleTaskFormOpen(task)}>Edit</Button>
+                                    <Button onClick={() => deleteTask(task.id)} color="secondary">Delete</Button>
+                                </Box>
+                            </Paper>
+                        ))}
+                    </Box>
+                    <Box className="kanban-column">
+                        <Typography variant="h6">High Priority</Typography>
+                        {tasks.filter(t => t.status === 'high-priority').map(task => (
+                            <Paper key={task.id} style={{ margin: '10px 0', padding: '10px' }}>
+                                <Box display="flex" alignItems="center">
+                                    <Checkbox checked={task.isDone} onChange={() => toggleTaskDone(task.id)} />
+                                    <Typography variant="body1" className={task.isDone ? 'task-done' : ''}>{task.description}</Typography>
+                                        <Typography variant="body2" style={{ marginLeft: 'auto' }}>{task.dueDate}</Typography>
+                                    <Button onClick={() => handleTaskFormOpen(task)}>Edit</Button>
+                                    <Button onClick={() => deleteTask(task.id)} color="secondary">Delete</Button>
+                                </Box>
+                            </Paper>
+                        ))}
+                    </Box>
+                </Container>
+            );
+
+            const renderNoteForm = () => {
+                const [title, setTitle] = useState(editingNote ? editingNote.title : '');
+                const [content, setContent] = useState(editingNote ? editingNote.content : '');
+                const [noteTasks, setNoteTasks] = useState(editingNote ? editingNote.tasks : []);
+
+                const addNoteTask = () => {
+                    const newTask = { id: Date.now() + Math.random(), description: '', dueDate: '', status: 'todo', isDone: false };
+                    setNoteTasks([...noteTasks, newTask.id]);
+                    setTasks([...tasks, newTask]);
+                };
+
+                const updateNoteTask = (taskId, description, dueDate) => {
+                    setTasks(prevTasks => prevTasks.map(t => t.id === taskId ? { ...t, description, dueDate } : t));
+                };
+
+                return (
+                    <Dialog open={noteFormOpen} onClose={handleNoteFormClose} fullWidth>
+                        <DialogTitle>{editingNote ? 'Edit Note' : 'New Note'}</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                {editingNote ? 'Edit the details of your note.' : 'Enter the details for your new note.'}
+                            </DialogContentText>
+                            <TextField autoFocus margin="dense" label="Title" fullWidth value={title} onChange={e => setTitle(e.target.value)} />
+                            <TextField margin="dense" label="Content" fullWidth multiline rows={4} value={content} onChange={e => setContent(e.target.value)} />
+                            {noteTasks.map(taskId => {
+                                const task = tasks.find(t => t.id === taskId);
+                                return (
+                                    <Box key={task.id} display="flex" alignItems="center" marginTop="10px">
+                                        <TextField label="Task Description" fullWidth value={task.description} onChange={e => updateNoteTask(task.id, e.target.value, task.dueDate)} />
+                                        <TextField type="date" fullWidth value={task.dueDate} onChange={e => updateNoteTask(task.id, task.description, e.target.value)} style={{ marginLeft: '10px' }} />
+                                    </Box>
+                                );
+                            })}
+                            <Button onClick={addNoteTask} color="primary" style={{ marginTop: '10px' }}>Add Task</Button>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleNoteFormClose} color="secondary">Cancel</Button>
+                            <Button onClick={() => saveNote(title, content, noteTasks)} color="primary">Save</Button>
+                        </DialogActions>
+                    </Dialog>
+                );
+            };
+
+            const renderTaskForm = () => {
+                const [description, setDescription] = useState(editingTask ? editingTask.description : '');
+                const [dueDate, setDueDate] = useState(editingTask ? editingTask.dueDate : '');
+                const [status, setStatus] = useState(editingTask ? editingTask.status : 'todo');
+
+                return (
+                    <Dialog open={taskFormOpen} onClose={handleTaskFormClose} fullWidth>
+                        <DialogTitle>{editingTask ? 'Edit Task' : 'New Task'}</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                {editingTask ? 'Edit the details of your task.' : 'Enter the details for your new task.'}
+                            </DialogContentText>
+                            <TextField autoFocus margin="dense" label="Description" fullWidth value={description} onChange={e => setDescription(e.target.value)} />
+                            <TextField type="date" margin="dense" fullWidth value={dueDate} onChange={e => setDueDate(e.target.value)} />
+                            <FormControl fullWidth margin="dense">
+                                <InputLabel>Status</InputLabel>
+                                <Select value={status} onChange={e => setStatus(e.target.value)}>
+                                    <MenuItem value="todo">To Do</MenuItem>
+                                    <MenuItem value="high-priority">High Priority</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleTaskFormClose} color="secondary">Cancel</Button>
+                            <Button onClick={() => saveTask(description, dueDate, status)} color="primary">Save</Button>
+                        </DialogActions>
+                    </Dialog>
+                );
+            };
+
+            return (
+                <Container>
+                    <AppBar position="static">
+                        <Tabs value={currentPage} onChange={handleTabChange} aria-label="simple tabs example">
+                            <Tab label="Notes" value="notes" />
+                            <Tab label="Tasks" value="tasks" />
+                            <Tab label="Kanban" value="kanban" />
+                        </Tabs>
+                    </AppBar>
+                    <Box hidden={currentPage !== 'notes'}>
+                        <Typography variant="h4" style={{ marginTop: '20px' }}>Notes</Typography>
+                        <Button onClick={() => handleNoteFormOpen()} variant="contained" color="primary" style={{ margin: '20px 0' }}>Add Note</Button>
+                        {renderNotes()}
+                    </Box>
+                    <Box hidden={currentPage !== 'tasks'}>
+                        <Typography variant="h4" style={{ marginTop: '20px' }}>Tasks</Typography>
+                        <Button onClick={() => handleTaskFormOpen()} variant="contained" color="primary" style={{ margin: '20px 0' }}>Add Task</Button>
+                        {renderTasks()}
+                    </Box>
+                    <Box hidden={currentPage !== 'kanban'}>
+                        <Typography variant="h4" style={{ marginTop: '20px' }}>Kanban Board</Typography>
+                        {renderKanban()}
+                    </Box>
+                    {noteFormOpen && renderNoteForm()}
+                    {taskFormOpen && renderTaskForm()}
+                </Container>
+            );
         }
 
-        function displayKanban() {
-            const todoTasksDiv = document.getElementById('todo-tasks');
-            const highPriorityTasksDiv = document.getElementById('high-priority-tasks');
-            todoTasksDiv.innerHTML = '';
-            highPriorityTasksDiv.innerHTML = '';
-            tasks.forEach(task => {
-                const taskDiv = document.createElement('div');
-                taskDiv.classList.add('box', 'task');
-                taskDiv.dataset.id = task.id;
-                taskDiv.innerHTML = `
-                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
-                    <span class="task-desc ${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                    <div class="buttons">
-                        <button class="button is-small is-link" onclick="editTask(${task.id})">Edit</button>
-                        <button class="button is-small is-danger" onclick="deleteTask(${task.id})">Delete</button>
-                    </div>
-                `;
-                if (task.status === 'todo') {
-                    todoTasksDiv.appendChild(taskDiv);
-                } else if (task.status === 'high-priority') {
-                    highPriorityTasksDiv.appendChild(taskDiv);
-                }
-            });
-        }
-
-        // Initial display
-        showPage('notes');
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
