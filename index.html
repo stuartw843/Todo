@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes and Tasks App</title>
     <style>
@@ -155,7 +155,7 @@
                 if (taskId) {
                     noteTasks.push(parseInt(taskId));
                 } else {
-                    const task = { id: Date.now(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value };
+                    const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value };
                     tasks.push(task);
                     noteTasks.push(task.id);
                 }
@@ -170,6 +170,7 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
             hideNoteForm();
             displayNotes();
+            displayTasks();
         }
 
         function addNoteTask(task) {
@@ -193,18 +194,22 @@
             notes = notes.filter(n => n.id !== id);
             localStorage.setItem('notes', JSON.stringify(notes));
             displayNotes();
+            displayTasks();
         }
 
         function displayTasks() {
             const tasksList = document.getElementById('tasks-list');
             tasksList.innerHTML = '';
             tasks.forEach(task => {
+                const relatedNote = notes.find(note => note.tasks.includes(task.id));
+                const relatedNoteTitle = relatedNote ? ` (Note: ${relatedNote.title})` : '';
                 const taskDiv = document.createElement('div');
                 taskDiv.classList.add('task');
                 taskDiv.innerHTML = `
                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                     <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
                     <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                    ${relatedNoteTitle}
                     <button onclick="editTask(${task.id})">Edit</button>
                     <button onclick="deleteTask(${task.id})">Delete</button>
                 `;
@@ -235,7 +240,7 @@
             if (editingTaskId) {
                 tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate } : t);
             } else {
-                const task = { id: Date.now(), description, isDone: false, dueDate };
+                const task = { id: Date.now() + Math.random(), description, isDone: false, dueDate };
                 tasks.push(task);
             }
             localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -285,4 +290,5 @@
     </script>
 </body>
 </html>
-        
+
+            
