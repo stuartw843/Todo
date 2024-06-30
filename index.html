@@ -30,6 +30,20 @@
         .note-content {
             white-space: pre-wrap;
         }
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+        }
+        .kanban-column {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .kanban-column h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -39,6 +53,7 @@
             <div class="buttons">
                 <button class="button is-link" onclick="showPage('notes')">Notes</button>
                 <button class="button is-link" onclick="showPage('tasks')">Tasks</button>
+                <button class="button is-link" onclick="showPage('kanban')">Kanban</button>
             </div>
             <div id="notes-page">
                 <h2 class="subtitle">Notes</h2>
@@ -87,9 +102,33 @@
                             <input type="date" class="input" id="task-due-date">
                         </div>
                     </div>
+                    <div class="field">
+                        <label class="label">Status</label>
+                        <div class="control">
+                            <div class="select">
+                                <select id="task-status">
+                                    <option value="todo">To Do</option>
+                                    <option value="high-priority">High Priority</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="buttons">
                         <button class="button is-success" onclick="saveTask()">Save Task</button>
                         <button class="button" onclick="hideTaskForm()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <div id="kanban-page" class="hidden">
+                <h2 class="subtitle">Kanban Board</h2>
+                <div class="kanban-board">
+                    <div class="kanban-column" id="todo-column">
+                        <h3>To Do</h3>
+                        <div id="todo-tasks"></div>
+                    </div>
+                    <div class="kanban-column" id="high-priority-column">
+                        <h3>High Priority</h3>
+                        <div id="high-priority-tasks"></div>
                     </div>
                 </div>
             </div>
@@ -107,11 +146,14 @@
         function showPage(page) {
             document.getElementById('notes-page').classList.add('hidden');
             document.getElementById('tasks-page').classList.add('hidden');
+            document.getElementById('kanban-page').classList.add('hidden');
             document.getElementById(page + '-page').classList.remove('hidden');
             if (page === 'notes') {
                 displayNotes();
             } else if (page === 'tasks') {
                 displayTasks();
+            } else if (page === 'kanban') {
+                displayKanban();
             }
         }
 
@@ -177,7 +219,7 @@
                 if (taskId) {
                     noteTasks.push(parseInt(taskId));
                 } else {
-                    const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value };
+                    const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: 'todo' };
                     tasks.push(task);
                     noteTasks.push(task.id);
                 }
@@ -193,6 +235,7 @@
             hideNoteForm();
             displayNotes();
             displayTasks();
+            displayKanban();
         }
 
         function addNoteTask(task) {
@@ -221,6 +264,7 @@
             localStorage.setItem('notes', JSON.stringify(notes));
             displayNotes();
             displayTasks();
+            displayKanban();
         }
 
         function displayTasks() {
@@ -258,6 +302,7 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
             displayTasks();
             displayNotes();
+            displayKanban();
         }
 
         function moveTaskDown(index) {
@@ -268,6 +313,7 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
             displayTasks();
             displayNotes();
+            displayKanban();
         }
 
         function showTaskForm(task) {
@@ -275,10 +321,12 @@
             if (task) {
                 document.getElementById('task-desc').value = task.description;
                 document.getElementById('task-due-date').value = task.dueDate;
+                document.getElementById('task-status').value = task.status;
                 editingTaskId = task.id;
             } else {
                 document.getElementById('task-desc').value = '';
                 document.getElementById('task-due-date').value = '';
+                document.getElementById('task-status').value = 'todo';
                 editingTaskId = null;
             }
         }
@@ -290,16 +338,18 @@
         function saveTask() {
             const description = document.getElementById('task-desc').value;
             const dueDate = document.getElementById('task-due-date').value;
+            const status = document.getElementById('task-status').value;
             if (editingTaskId) {
-                tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate } : t);
+                tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate, status } : t);
             } else {
-                const task = { id: Date.now() + Math.random(), description, isDone: false, dueDate };
+                const task = { id: Date.now() + Math.random(), description, isDone: false, dueDate, status };
                 tasks.push(task);
             }
             localStorage.setItem('tasks', JSON.stringify(tasks));
             hideTaskForm();
             displayTasks();
             displayNotes();
+            displayKanban();
         }
 
         function toggleTaskDone(id) {
@@ -308,6 +358,7 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
             displayTasks();
             displayNotes();
+            displayKanban();
         }
 
         function editTask(id) {
@@ -325,6 +376,7 @@
             localStorage.setItem('notes', JSON.stringify(notes));
             displayTasks();
             displayNotes();
+            displayKanban();
         }
 
         function deleteAllNotesAndTasks() {
@@ -335,7 +387,34 @@
                 localStorage.setItem('tasks', JSON.stringify(tasks));
                 displayNotes();
                 displayTasks();
+                displayKanban();
             }
+        }
+
+        function displayKanban() {
+            const todoTasksDiv = document.getElementById('todo-tasks');
+            const highPriorityTasksDiv = document.getElementById('high-priority-tasks');
+            todoTasksDiv.innerHTML = '';
+            highPriorityTasksDiv.innerHTML = '';
+            tasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.classList.add('box', 'task');
+                taskDiv.dataset.id = task.id;
+                taskDiv.innerHTML = `
+                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                    <span class="task-desc ${task.isDone ? 'task-done' : ''}">${task.description}</span>
+                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                    <div class="buttons">
+                        <button class="button is-small is-link" onclick="editTask(${task.id})">Edit</button>
+                        <button class="button is-small is-danger" onclick="deleteTask(${task.id})">Delete</button>
+                    </div>
+                `;
+                if (task.status === 'todo') {
+                    todoTasksDiv.appendChild(taskDiv);
+                } else if (task.status === 'high-priority') {
+                    highPriorityTasksDiv.appendChild(taskDiv);
+                }
+            });
         }
 
         // Initial display
