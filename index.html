@@ -75,8 +75,9 @@
             background: #f9f9f9;
             border-bottom: 1px solid #ddd;
             display: flex;
+            flex-direction: column;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 5px;
         }
 
@@ -84,8 +85,23 @@
             opacity: 0.5;
         }
 
-        li span {
-            flex: 1;
+        .task-text {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .task-date {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .task-actions {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            margin-top: 10px;
         }
 
         .drag-handle {
@@ -93,7 +109,7 @@
             margin-right: 10px;
         }
 
-        li button {
+        .task-actions button {
             background: #dc3545;
             border: none;
             color: #fff;
@@ -103,15 +119,15 @@
             margin-left: 10px;
         }
 
-        li button:hover {
+        .task-actions button:hover {
             background: #c82333;
         }
 
-        li .edit {
+        .task-actions .edit {
             background: #ffc107;
         }
 
-        li .edit:hover {
+        .task-actions .edit:hover {
             background: #e0a800;
         }
 
@@ -148,6 +164,7 @@
             const input = document.getElementById('todo-input');
             const dueDateInput = document.getElementById('todo-due-date');
             const list = document.getElementById('todo-list');
+            const submitButton = form.querySelector('button');
 
             let editingTaskId = null;
 
@@ -173,6 +190,7 @@
                         updateTaskInDOM(editingTaskId, taskText, dueDate);
                         updateTaskInLocalStorage(editingTaskId, taskText, dueDate);
                         editingTaskId = null;
+                        submitButton.textContent = 'Add';
                     } else {
                         const id = Date.now().toString();
                         const task = { text: taskText, id: id, dueDate: dueDate };
@@ -190,24 +208,28 @@
                     taskElement = document.createElement('li');
                     taskElement.id = task.id;
                     taskElement.innerHTML = `
-                        <span class="drag-handle">☰</span>
-                        <span>${task.text}</span>
-                        <span>${task.dueDate ? `Due: ${task.dueDate}` : ''}</span>
-                        <button class="edit" data-id="${task.id}">Edit</button>
-                        <button class="delete" data-id="${task.id}">Delete</button>
+                        <div class="task-text">
+                            <span class="drag-handle">☰</span>
+                            <span>${task.text}</span>
+                        </div>
+                        <div class="task-date">${task.dueDate ? `Due: ${task.dueDate}` : ''}</div>
+                        <div class="task-actions">
+                            <button class="edit" data-id="${task.id}">Edit</button>
+                            <button class="delete" data-id="${task.id}">Delete</button>
+                        </div>
                     `;
                     list.appendChild(taskElement);
                 } else {
-                    taskElement.querySelector('span:nth-child(2)').textContent = task.text;
-                    taskElement.querySelector('span:nth-child(3)').textContent = task.dueDate ? `Due: ${task.dueDate}` : '';
+                    taskElement.querySelector('.task-text span:nth-child(2)').textContent = task.text;
+                    taskElement.querySelector('.task-date').textContent = task.dueDate ? `Due: ${task.dueDate}` : '';
                 }
             }
 
             function updateTaskInDOM(id, text, dueDate) {
                 const taskElement = document.getElementById(id);
                 if (taskElement) {
-                    taskElement.querySelector('span:nth-child(2)').textContent = text;
-                    taskElement.querySelector('span:nth-child(3)').textContent = dueDate ? `Due: ${dueDate}` : '';
+                    taskElement.querySelector('.task-text span:nth-child(2)').textContent = text;
+                    taskElement.querySelector('.task-date').textContent = dueDate ? `Due: ${dueDate}` : '';
                 }
             }
 
@@ -227,6 +249,7 @@
                     input.value = task.text;
                     dueDateInput.value = task.dueDate || '';
                     editingTaskId = id;
+                    submitButton.textContent = 'Save';
                 }
             }
 
@@ -274,8 +297,8 @@
                 const tasks = Array.from(list.children).map((task, index) => {
                     return { 
                         id: task.id, 
-                        text: task.querySelector('span:nth-child(2)').textContent, 
-                        dueDate: task.querySelector('span:nth-child(3)').textContent.replace('Due: ', ''), 
+                        text: task.querySelector('.task-text span:nth-child(2)').textContent, 
+                        dueDate: task.querySelector('.task-date').textContent.replace('Due: ', ''), 
                         order: index 
                     };
                 });
