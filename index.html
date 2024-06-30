@@ -3,603 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notes and To-Do App</title>
+    <title>Notes and Tasks App</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            background: #fff;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
         }
-
-        h1 {
-            margin: 0;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .nav-buttons button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            background: #007bff;
-            color: #fff;
-        }
-
-        .nav-buttons button:hover {
-            background: #0056b3;
-        }
-
-        form {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        input[type="text"], input[type="date"], textarea {
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            flex: 1;
-            margin-right: 10px;
-        }
-
-        input[type="text"] {
-            flex: 2;
-        }
-
-        textarea {
-            flex: 2;
-            height: 150px;
-        }
-
-        button {
-            padding: 10px;
-            font-size: 16px;
-            border: none;
-            background: #28a745;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 5px;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: #218838;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        li {
-            padding: 10px;
-            background: #f9f9f9;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 5px;
-        }
-
-        li.dragging {
-            opacity: 0.5;
-        }
-
-        .task-text {
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-
-        .task-date {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .task-actions {
-            display: flex;
-            justify-content: flex-end;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .drag-handle {
-            cursor: grab;
-            margin-right: 10px;
-        }
-
-        .task-actions button {
-            background: #dc3545;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-
-        .task-actions button:hover {
-            background: #c82333;
-        }
-
-        .task-actions .edit {
-            background: #ffc107;
-        }
-
-        .task-actions .edit:hover {
-            background: #e0a800;
-        }
-
-        .notes-list, .note-content {
-            margin-top: 20px;
-        }
-
-        .notes-list button {
-            background: #007bff;
-            margin-bottom: 5px;
-        }
-
-        .notes-list button:hover {
-            background: #0056b3;
-        }
-
-        .note-title {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        .note-markdown {
-            margin-top: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            background: #f9f9f9;
-            min-height: 150px;
-        }
-
-        .note-todos {
-            margin-top: 20px;
-        }
-
-        .note-todos h2 {
-            font-size: 1.2em;
-            margin-bottom: 10px;
-        }
-
-        .note-form, .note-content, .todo-section {
+        .hidden {
             display: none;
         }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-            }
-
-            form {
-                flex-direction: column;
-            }
-
-            input[type="text"], input[type="date"], textarea {
-                width: 100%;
-                margin-right: 0;
-            }
-
-            .notes-list, .note-content {
-                margin-top: 10px;
-            }
+        .task-done {
+            text-decoration: line-through;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Notes and To-Do List</h1>
-        <div class="nav-buttons">
-            <button id="show-notes-list">Notes List</button>
-            <button id="show-add-note">Add Note</button>
-            <button id="show-global-todos">Global To-Dos</button>
-        </div>
-        <div class="notes-list">
+        <h1>Notes and Tasks App</h1>
+        <nav>
+            <button onclick="showPage('notes')">Notes</button>
+            <button onclick="showPage('tasks')">Tasks</button>
+        </nav>
+        <div id="notes-page">
             <h2>Notes</h2>
-            <ul id="notes-list"></ul>
-        </div>
-        <div class="note-form">
-            <form id="note-form">
-                <input type="text" id="note-title" placeholder="Note Title" required>
-                <textarea id="note-content" placeholder="Note Content (Markdown)"></textarea>
-                <button type="submit">Save Note</button>
-            </form>
-            <div class="note-todos">
-                <h2>To-Do Items for Note</h2>
-                <form id="todo-form-note">
-                    <input type="text" id="todo-input-note" placeholder="Enter a new task" required>
-                    <input type="date" id="todo-due-date-note">
-                    <button type="submit">Add</button>
-                </form>
-                <ul id="todo-list-note"></ul>
+            <div id="notes-list"></div>
+            <button onclick="showNoteForm()">Add Note</button>
+            <div id="note-form" class="hidden">
+                <h3>New Note</h3>
+                <input type="text" id="note-title" placeholder="Title"><br>
+                <textarea id="note-content" placeholder="Content"></textarea><br>
+                <button onclick="saveNote()">Save Note</button>
             </div>
         </div>
-        <div class="note-content">
-            <div class="note-display">
-                <div class="note-title"></div>
-                <div class="note-markdown"></div>
+        <div id="tasks-page" class="hidden">
+            <h2>Tasks</h2>
+            <div id="tasks-list"></div>
+            <button onclick="showTaskForm()">Add Task</button>
+            <div id="task-form" class="hidden">
+                <h3>New Task</h3>
+                <input type="text" id="task-desc" placeholder="Description"><br>
+                <input type="date" id="task-due-date"><br>
+                <button onclick="saveTask()">Save Task</button>
             </div>
-            <div class="note-todos">
-                <h2>To-Do Items for Note</h2>
-                <ul id="todo-list-note-display"></ul>
-            </div>
-        </div>
-        <div class="todo-section">
-            <h2>Global To-Do List</h2>
-            <ul id="todo-list-global"></ul>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.10/marked.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const noteForm = document.getElementById('note-form');
-            const noteTitleInput = document.getElementById('note-title');
-            const noteContentInput = document.getElementById('note-content');
+        let notes = JSON.parse(localStorage.getItem('notes')) || [];
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        function showPage(page) {
+            document.getElementById('notes-page').classList.add('hidden');
+            document.getElementById('tasks-page').classList.add('hidden');
+            document.getElementById(page + '-page').classList.remove('hidden');
+            if (page === 'notes') {
+                displayNotes();
+            } else if (page === 'tasks') {
+                displayTasks();
+            }
+        }
+
+        function displayNotes() {
             const notesList = document.getElementById('notes-list');
-            const addNoteButton = document.getElementById('show-add-note');
-            const showNotesListButton = document.getElementById('show-notes-list');
-            const showGlobalTodosButton = document.getElementById('show-global-todos');
-            const noteDisplay = document.querySelector('.note-display');
-            const noteTitleDisplay = document.querySelector('.note-title');
-            const noteMarkdownDisplay = document.querySelector('.note-markdown');
-            const todoFormNote = document.getElementById('todo-form-note');
-            const todoInputNote = document.getElementById('todo-input-note');
-            const todoDueDateNote = document.getElementById('todo-due-date-note');
-            const todoListNote = document.getElementById('todo-list-note');
-            const todoListNoteDisplay = document.getElementById('todo-list-note-display');
-            const todoListGlobal = document.getElementById('todo-list-global');
-            const noteFormContainer = document.querySelector('.note-form');
-            const notesListContainer = document.querySelector('.notes-list-container');
-            const noteContentContainer = document.querySelector('.note-content');
-            const todoSectionContainer = document.querySelector('.todo-section');
-
-            let currentNoteId = null;
-            let editingTaskId = null;
-
-            addNoteButton.addEventListener('click', () => {
-                currentNoteId = null;
-                noteTitleInput.value = '';
-                noteContentInput.value = '';
-                noteFormContainer.style.display = 'block';
-                noteContentContainer.style.display = 'none';
-                notesListContainer.style.display = 'none';
-                todoSectionContainer.style.display = 'none';
-                todoListNote.innerHTML = '';
-            });
-
-            showNotesListButton.addEventListener('click', () => {
-                noteFormContainer.style.display = 'none';
-                noteContentContainer.style.display = 'none';
-                notesListContainer.style.display = 'block';
-                todoSectionContainer.style.display = 'none';
-            });
-
-            showGlobalTodosButton.addEventListener('click', () => {
-                noteFormContainer.style.display = 'none';
-                noteContentContainer.style.display = 'none';
-                notesListContainer.style.display = 'none';
-                todoSectionContainer.style.display = 'block';
-                loadTodosFromLocalStorage(); // Ensure global todos are updated
-            });
-
-            noteForm.addEventListener('submit', saveNote);
-            notesList.addEventListener('click', handleNoteActions);
-            todoFormNote.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const taskText = todoInputNote.value.trim();
-                const dueDate = todoDueDateNote.value;
-                if (editingTaskId) {
-                    updateTaskInLocalStorage(editingTaskId, taskText, dueDate);
-                    editTask(editingTaskId, taskText, dueDate);
-                    editingTaskId = null;
-                } else {
-                    addTodoForNote();
-                }
-                todoInputNote.value = '';
-                todoDueDateNote.value = '';
-                loadTodosFromLocalStorage(); // Ensure global todos are updated
-            });
-
-            document.addEventListener('click', function (e) {
-                const id = e.target.getAttribute('data-id');
-                if (e.target.classList.contains('delete-note')) {
-                    deleteNoteFromDOM(id);
-                    deleteNoteFromLocalStorage(id);
-                    loadTodosFromLocalStorage(); // Ensure global todos are updated
-                } else if (e.target.classList.contains('delete')) {
-                    removeTaskFromDOM(id);
-                    removeTaskFromLocalStorage(id);
-                    loadTodosFromLocalStorage(); // Ensure global todos are updated
-                } else if (e.target.classList.contains('edit')) {
-                    const task = getTaskFromLocalStorageById(id);
-                    if (task) {
-                        todoInputNote.value = task.text;
-                        todoDueDateNote.value = task.dueDate;
-                        editingTaskId = id;
-                    }
-                }
-            });
-
-            // Load notes and todos from LocalStorage
-            loadNotesFromLocalStorage();
-            loadTodosFromLocalStorage();
-
-            function saveNote(e) {
-                e.preventDefault();
-                const noteTitle = noteTitleInput.value.trim();
-                const noteContent = noteContentInput.value.trim();
-                if (noteTitle !== '') {
-                    if (currentNoteId) {
-                        updateNoteInLocalStorage(currentNoteId, noteTitle, noteContent);
-                    } else {
-                        const id = Date.now().toString();
-                        const note = { id, title: noteTitle, content: noteContent };
-                        saveNoteToLocalStorage(note);
-                        addNoteToDOM(note);
-                        currentNoteId = id;
-                    }
-                    noteFormContainer.style.display = 'none';
-                    displayNoteContent(noteTitle, noteContent);
-                    noteContentContainer.style.display = 'block';
-                    loadTodosForNoteFromLocalStorage(currentNoteId);
-                }
-            }
-
-            function addNoteToDOM(note) {
-                const noteElement = document.createElement('li');
-                noteElement.id = `note-${note.id}`;
-                noteElement.innerHTML = `
-                    <span>${note.title}</span>
-                    <button class="edit-note" data-id="${note.id}">Edit</button>
-                    <button class="open-note" data-id="${note.id}">Open</button>
-                    <button class="delete-note" data-id="${note.id}">Delete</button>
+            notesList.innerHTML = '';
+            notes.forEach(note => {
+                const noteDiv = document.createElement('div');
+                noteDiv.innerHTML = `
+                    <h3>${note.title}</h3>
+                    <div>${marked(note.content)}</div>
+                    <button onclick="editNote(${note.id})">Edit</button>
+                    <button onclick="deleteNote(${note.id})">Delete</button>
                 `;
-                notesList.appendChild(noteElement);
-            }
-
-            function handleNoteActions(e) {
-                const id = e.target.getAttribute('data-id');
-                if (e.target.classList.contains('edit-note')) {
-                    startEditingNote(id);
-                } else if (e.target.classList.contains('open-note')) {
-                    openNoteContent(id);
-                }
-            }
-
-            function startEditingNote(id) {
-                const note = getNoteFromLocalStorageById(id);
-                if (note) {
-                    noteTitleInput.value = note.title;
-                    noteContentInput.value = note.content;
-                    currentNoteId = id;
-                    noteFormContainer.style.display = 'block';
-                    noteContentContainer.style.display = 'none';
-                    notesListContainer.style.display = 'none';
-                    todoSectionContainer.style.display = 'none';
-                    todoListNote.innerHTML = '';
-                    loadTodosForNoteFromLocalStorage(id);
-                }
-            }
-
-            function openNoteContent(id) {
-                const note = getNoteFromLocalStorageById(id);
-                if (note) {
-                    displayNoteContent(note.title, note.content);
-                    currentNoteId = id;
-                    noteFormContainer.style.display = 'none';
-                    noteContentContainer.style.display = 'block';
-                    notesListContainer.style.display = 'none';
-                    todoSectionContainer.style.display = 'none';
-                    todoListNoteDisplay.innerHTML = ''; // Clear previous todos
-                    loadTodosForNoteFromLocalStorage(id);
-                }
-            }
-
-            function displayNoteContent(title, content) {
-                noteTitleDisplay.textContent = title;
-                noteMarkdownDisplay.innerHTML = marked.parse(content);
-            }
-
-            function addTodoForNote() {
-                const taskText = todoInputNote.value.trim();
-                const dueDate = todoDueDateNote.value;
-                if (taskText !== '') {
-                    const id = Date.now().toString();
-                    const task = { text: taskText, id: id, dueDate: dueDate, noteId: currentNoteId };
-                    addTodoToDOM(task, todoListNote);
-                    addTodoToDOM(task, todoListNoteDisplay);
-                    saveTodoToLocalStorage(task);
-                }
-            }
-
-            function addTodoToDOM(task, targetList) {
-                let taskElement = document.getElementById(task.id);
-                if (!taskElement) {
-                    taskElement = document.createElement('li');
-                    taskElement.id = task.id;
-                    taskElement.innerHTML = `
-                        <div class="task-text">
-                            <span class="drag-handle">☰</span>
-                            <span>${task.text}</span>
-                        </div>
-                        <div class="task-date">${task.dueDate ? `Due: ${task.dueDate}` : ''}</div>
-                        <div class="task-actions">
-                            <button class="edit" data-id="${task.id}">Edit</button>
-                            <button class="delete" data-id="${task.id}">Delete</button>
-                        </div>
-                    `;
-                    targetList.appendChild(taskElement);
-                } else {
-                    taskElement.querySelector('.task-text span:nth-child(2)').textContent = task.text;
-                    taskElement.querySelector('.task-date').textContent = task.dueDate ? `Due: ${task.dueDate}` : '';
-                }
-            }
-
-            function editTask(id, text, dueDate) {
-                const taskElement = document.getElementById(id);
-                if (taskElement) {
-                    taskElement.querySelector('.task-text span:nth-child(2)').textContent = text;
-                    taskElement.querySelector('.task-date').textContent = dueDate ? `Due: ${dueDate}` : '';
-                }
-            }
-
-            function deleteNoteFromDOM(id) {
-                const noteElement = document.getElementById(`note-${id}`);
-                if (noteElement) {
-                    noteElement.remove();
-                }
-                const todos = getTodosFromLocalStorage();
-                const filteredTodos = todos.filter(todo => todo.noteId !== id);
-                localStorage.setItem('todos', JSON.stringify(filteredTodos));
-            }
-
-            function saveNoteToLocalStorage(note) {
-                const notes = getNotesFromLocalStorage();
-                notes.push(note);
-                localStorage.setItem('notes', JSON.stringify(notes));
-            }
-
-            function updateNoteInLocalStorage(id, title, content) {
-                let notes = getNotesFromLocalStorage();
-                notes = notes.map(note => note.id === id ? { ...note, title, content } : note);
-                localStorage.setItem('notes', JSON.stringify(notes));
-                updateNoteInDOM(id, title);
-            }
-
-            function updateNoteInDOM(id, title) {
-                const noteElement = document.getElementById(`note-${id}`);
-                if (noteElement) {
-                    noteElement.querySelector('span').textContent = title;
-                }
-            }
-
-            function getNoteFromLocalStorageById(id) {
-                const notes = getNotesFromLocalStorage();
-                return notes.find(note => note.id === id);
-            }
-
-            function deleteNoteFromLocalStorage(id) {
-                let notes = getNotesFromLocalStorage();
-                notes = notes.filter(note => note.id !== id);
-                localStorage.setItem('notes', JSON.stringify(notes));
-            }
-
-            function loadNotesFromLocalStorage() {
-                const notes = getNotesFromLocalStorage();
-                notes.forEach(note => addNoteToDOM(note));
-            }
-
-            function getNotesFromLocalStorage() {
-                const notes = localStorage.getItem('notes');
-                return notes ? JSON.parse(notes) : [];
-            }
-            function saveTodoToLocalStorage(task) {
-                const todos = getTodosFromLocalStorage();
-                todos.push(task);
-                localStorage.setItem('todos', JSON.stringify(todos));
-            }
-
-            function loadTodosFromLocalStorage() {
-                const todos = getTodosFromLocalStorage();
-                todoListGlobal.innerHTML = ''; // Clear previous todos
-                todos.forEach(todo => addTodoToDOM(todo, todoListGlobal));
-            }
-
-            function loadTodosForNoteFromLocalStorage(noteId) {
-                const todos = getTodosFromLocalStorage();
-                const noteTodos = todos.filter(todo => todo.noteId === noteId);
-                todoListNote.innerHTML = ''; // Clear previous todos
-                todoListNoteDisplay.innerHTML = ''; // Clear previous todos
-                noteTodos.forEach(todo => addTodoToDOM(todo, todoListNote));
-                noteTodos.forEach(todo => addTodoToDOM(todo, todoListNoteDisplay));
-            }
-
-            function getTodosFromLocalStorage() {
-                const todos = localStorage.getItem('todos');
-                return todos ? JSON.parse(todos) : [];
-            }
-
-            function updateTaskOrder() {
-                const tasks = Array.from(todoListGlobal.children).map((task, index) => {
-                    return {
-                        id: task.id,
-                        text: task.querySelector('.task-text span:nth-child(2)').textContent,
-                        dueDate: task.querySelector('.task-date').textContent.replace('Due: ', ''),
-                        order: index
-                    };
-                });
-                localStorage.setItem('todos', JSON.stringify(tasks));
-            }
-
-            document.querySelectorAll('.todo-list').forEach(list => {
-                new Sortable(list, {
-                    handle: '.drag-handle',
-                    animation: 150,
-                    onEnd: updateTaskOrder
-                });
+                notesList.appendChild(noteDiv);
             });
+        }
 
-            function removeTaskFromLocalStorage(id) {
-                let todos = getTodosFromLocalStorage();
-                todos = todos.filter(todo => todo.id !== id);
-                localStorage.setItem('todos', JSON.stringify(todos));
+        function showNoteForm(note) {
+            document.getElementById('note-form').classList.remove('hidden');
+            if (note) {
+                document.getElementById('note-title').value = note.title;
+                document.getElementById('note-content').value = note.content;
+            } else {
+                document.getElementById('note-title').value = '';
+                document.getElementById('note-content').value = '';
             }
+        }
 
-            function removeTaskFromDOM(id) {
-                const taskElement = document.getElementById(id);
-                if (taskElement) {
-                    taskElement.remove();
-                }
+        function saveNote() {
+            const title = document.getElementById('note-title').value;
+            const content = document.getElementById('note-content').value;
+            const note = { id: Date.now(), title, content, tasks: [] };
+            notes.push(note);
+            localStorage.setItem('notes', JSON.stringify(notes));
+            document.getElementById('note-form').classList.add('hidden');
+            displayNotes();
+        }
+
+        function editNote(id) {
+            const note = notes.find(n => n.id === id);
+            showNoteForm(note);
+            notes = notes.filter(n => n.id !== id);
+        }
+
+        function deleteNote(id) {
+            notes = notes.filter(n => n.id !== id);
+            localStorage.setItem('notes', JSON.stringify(notes));
+            displayNotes();
+        }
+
+        function displayTasks() {
+            const tasksList = document.getElementById('tasks-list');
+            tasksList.innerHTML = '';
+            tasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.innerHTML = `
+                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                    <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
+                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                    <button onclick="editTask(${task.id})">Edit</button>
+                    <button onclick="deleteTask(${task.id})">Delete</button>
+                `;
+                tasksList.appendChild(taskDiv);
+            });
+        }
+
+        function showTaskForm(task) {
+            document.getElementById('task-form').classList.remove('hidden');
+            if (task) {
+                document.getElementById('task-desc').value = task.description;
+                document.getElementById('task-due-date').value = task.dueDate;
+            } else {
+                document.getElementById('task-desc').value = '';
+                document.getElementById('task-due-date').value = '';
             }
+        }
 
-            function getTaskFromLocalStorageById(id) {
-                const todos = getTodosFromLocalStorage();
-                return todos.find(todo => todo.id === id);
-            }
+        function saveTask() {
+            const description = document.getElementById('task-desc').value;
+            const dueDate = document.getElementById('task-due-date').value;
+            const task = { id: Date.now(), description, isDone: false, dueDate };
+            tasks.push(task);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            document.getElementById('task-form').classList.add('hidden');
+            displayTasks();
+        }
 
-            function updateTaskInLocalStorage(id, text, dueDate) {
-                let todos = getTodosFromLocalStorage();
-                todos = todos.map(todo => todo.id === id ? { ...todo, text, dueDate } : todo);
-                localStorage.setItem('todos', JSON.stringify(todos));
-            }
+        function toggleTaskDone(id) {
+            const task = tasks.find(t => t.id === id);
+            task.isDone = !task.isDone;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
+        }
 
-            // Initial load
-            showNotesListButton.click();
-        });
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            showTaskForm(task);
+            tasks = tasks.filter(t => t.id !== id);
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
+        }
+
+        // Initial display
+        showPage('notes');
     </script>
 </body>
 </html>
