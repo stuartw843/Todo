@@ -213,11 +213,12 @@
                 const relatedNoteTitle = relatedNote ? ` (Note: ${relatedNote.title})` : '';
                 const taskDiv = document.createElement('div');
                 taskDiv.classList.add('task');
+                taskDiv.dataset.id = task.id;
                 taskDiv.innerHTML = `
                     <div class="task-handle">☰</div>
                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                     <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                        <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
                     ${relatedNoteTitle}
                     <button onclick="editTask(${task.id})">Edit</button>
                     <button onclick="deleteTask(${task.id})">Delete</button>
@@ -231,7 +232,7 @@
                 animation: 150,
                 onEnd: function (evt) {
                     const newOrder = Array.from(tasksList.children).map(child => {
-                        const taskId = parseInt(child.querySelector('input[type="checkbox"]').getAttribute('onclick').match(/\d+/)[0]);
+                        const taskId = parseInt(child.dataset.id);
                         return tasks.find(task => task.id === taskId);
                     });
                     tasks = newOrder;
