@@ -313,6 +313,7 @@
                 noteContentContainer.style.display = 'none';
                 notesListContainer.style.display = 'none';
                 todoSectionContainer.style.display = 'block';
+                loadTodosFromLocalStorage(); // Ensure global todos are updated
             });
 
             noteForm.addEventListener('submit', saveNote);
@@ -330,6 +331,7 @@
                 }
                 todoInputNote.value = '';
                 todoDueDateNote.value = '';
+                loadTodosFromLocalStorage(); // Ensure global todos are updated
             });
 
             document.addEventListener('click', function (e) {
@@ -337,6 +339,7 @@
                     const id = e.target.getAttribute('data-id');
                     removeTaskFromDOM(id);
                     removeTaskFromLocalStorage(id);
+                    loadTodosFromLocalStorage(); // Ensure global todos are updated
                 } else if (e.target.classList.contains('edit')) {
                     const id = e.target.getAttribute('data-id');
                     const task = getTaskFromLocalStorageById(id);
@@ -417,6 +420,7 @@
                     noteContentContainer.style.display = 'block';
                     notesListContainer.style.display = 'none';
                     todoSectionContainer.style.display = 'none';
+                    todoListNoteDisplay.innerHTML = ''; // Clear previous todos
                     loadTodosForNoteFromLocalStorage(id);
                 }
             }
@@ -512,6 +516,7 @@
 
             function loadTodosFromLocalStorage() {
                 const todos = getTodosFromLocalStorage();
+                todoListGlobal.innerHTML = ''; // Clear previous todos
                 todos.forEach(todo => addTodoToDOM(todo, todoListGlobal));
             }
 
@@ -577,5 +582,5 @@
     </script>
 </body>
 </html>
-        
-                    
+            
+                
