@@ -23,10 +23,33 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         h1 {
-            margin: 0 0 20px 0;
+            margin: 0;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            background: #007bff;
+            color: #fff;
+        }
+
+        .nav-buttons button:hover {
+            background: #0056b3;
         }
 
         form {
@@ -172,7 +195,7 @@
             margin-bottom: 10px;
         }
 
-        .note-form {
+        .note-form, .note-content, .todo-section {
             display: none;
         }
 
@@ -199,10 +222,14 @@
 <body>
     <div class="container">
         <h1>Notes and To-Do List</h1>
+        <div class="nav-buttons">
+            <button id="show-notes-list">Notes List</button>
+            <button id="show-add-note">Add Note</button>
+            <button id="show-global-todos">Global To-Dos</button>
+        </div>
         <div class="notes-list">
             <h2>Notes</h2>
             <ul id="notes-list"></ul>
-            <button id="add-note-button">Add Note</button>
         </div>
         <div class="note-form">
             <form id="note-form">
@@ -239,7 +266,9 @@
             const noteTitleInput = document.getElementById('note-title');
             const noteContentInput = document.getElementById('note-content');
             const notesList = document.getElementById('notes-list');
-            const addNoteButton = document.getElementById('add-note-button');
+            const addNoteButton = document.getElementById('show-add-note');
+            const showNotesListButton = document.getElementById('show-notes-list');
+            const showGlobalTodosButton = document.getElementById('show-global-todos');
             const noteDisplay = document.querySelector('.note-display');
             const noteTitleDisplay = document.querySelector('.note-title');
             const noteMarkdownDisplay = document.querySelector('.note-markdown');
@@ -249,6 +278,9 @@
             const todoListNote = document.getElementById('todo-list-note');
             const todoListGlobal = document.getElementById('todo-list-global');
             const noteFormContainer = document.querySelector('.note-form');
+            const notesListContainer = document.querySelector('.notes-list');
+            const noteContentContainer = document.querySelector('.note-content');
+            const todoSectionContainer = document.querySelector('.todo-section');
 
             let currentNoteId = null;
 
@@ -257,8 +289,24 @@
                 noteTitleInput.value = '';
                 noteContentInput.value = '';
                 noteFormContainer.style.display = 'block';
-                noteDisplay.style.display = 'none';
+                noteContentContainer.style.display = 'none';
+                notesListContainer.style.display = 'none';
+                todoSectionContainer.style.display = 'none';
                 todoListNote.innerHTML = '';
+            });
+
+            showNotesListButton.addEventListener('click', () => {
+                noteFormContainer.style.display = 'none';
+                noteContentContainer.style.display = 'none';
+                notesListContainer.style.display = 'block';
+                todoSectionContainer.style.display = 'none';
+            });
+
+            showGlobalTodosButton.addEventListener('click', () => {
+                noteFormContainer.style.display = 'none';
+                noteContentContainer.style.display = 'none';
+                notesListContainer.style.display = 'none';
+                todoSectionContainer.style.display = 'block';
             });
 
             noteForm.addEventListener('submit', saveNote);
@@ -278,233 +326,264 @@
                         updateNoteInLocalStorage(currentNoteId, noteTitle, noteContent);
                     } else {
                         const id = Date.now().toString();
-                        const note = { id,
-                        title: noteTitle,
-                        content: noteContent
-                    };
-                    saveNoteToLocalStorage(note);
-                    addNoteToDOM(note);
-                    currentNoteId = id;
+                        const note = { id, title: noteTitle, content: noteContent };
+                        saveNoteToLocalStorage(note);
+                        addNoteToDOM(note);
+                        currentNoteId = id;
+                    }
+                    noteFormContainer.style.display = 'none';
+                    displayNoteContent(noteTitle, noteContent);
+                    noteContentContainer.style.display = 'block';
                 }
-                noteFormContainer.style.display = 'none';
-                displayNoteContent(noteTitle, noteContent);
-                noteDisplay.style.display = 'block';
             }
-        }
 
-        function addNoteToDOM(note) {
-            const noteElement = document.createElement('li');
-            noteElement.id = `note-${note.id}`;
-            noteElement.innerHTML = `
-                <span>${note.title}</span>
-                <button class="edit-note" data-id="${note.id}">Edit</button>
-                <button class="open-note" data-id="${note.id}">Open</button>
-            `;
-            notesList.appendChild(noteElement);
-        }
-
-        function handleNoteActions(e) {
-            const id = e.target.getAttribute('data-id');
-            if (e.target.classList.contains('edit-note')) {
-                startEditingNote(id);
-            } else if (e.target.classList.contains('open-note')) {
-                openNoteContent(id);
-            }
-        }
-
-        function startEditingNote(id) {
-            const note = getNoteFromLocalStorageById(id);
-            if (note) {
-                noteTitleInput.value = note.title;
-                noteContentInput.value = note.content;
-                currentNoteId = id;
-                noteFormContainer.style.display = 'block';
-                noteDisplay.style.display = 'none';
-                todoListNote.innerHTML = '';
-                loadTodosForNoteFromLocalStorage(id);
-            }
-        }
-
-        function openNoteContent(id) {
-            const note = getNoteFromLocalStorageById(id);
-            if (note) {
-                displayNoteContent(note.title, note.content);
-                currentNoteId = id;
-                noteFormContainer.style.display = 'none';
-                noteDisplay.style.display = 'block';
-                todoListNote.innerHTML = '';
-                loadTodosForNoteFromLocalStorage(id);
-            }
-        }
-
-        function displayNoteContent(title, content) {
-            noteTitleDisplay.textContent = title;
-            noteMarkdownDisplay.innerHTML = marked.parse(content);
-        }
-
-        function addTodoForNote(e) {
-            e.preventDefault();
-            const taskText = todoInputNote.value.trim();
-            const dueDate = todoDueDateNote.value;
-            if (taskText !== '') {
-                const id = Date.now().toString();
-                const task = { text: taskText, id: id, dueDate: dueDate, noteId: currentNoteId };
-                addTodoToDOM(task, todoListNote);
-                saveTodoToLocalStorage(task);
-                todoInputNote.value = '';
-                todoDueDateNote.value = '';
-            }
-        }
-
-        function addTodoToDOM(task, targetList) {
-            let taskElement = document.getElementById(task.id);
-            if (!taskElement) {
-                taskElement = document.createElement('li');
-                taskElement.id = task.id;
-                taskElement.innerHTML = `
-                    <div class="task-text">
-                        <span class="drag-handle">☰</span>
-                        <span>${task.text}</span>
-                    </div>
-                    <div class="task-date">${task.dueDate ? `Due: ${task.dueDate}` : ''}</div>
-                    <div class="task-actions">
-                        <button class="edit" data-id="${task.id}">Edit</button>
-                        <button class="delete" data-id="${task.id}">Delete</button>
-                    </div>
+            function addNoteToDOM(note) {
+                const noteElement = document.createElement('li');
+                noteElement.id = `note-${note.id}`;
+                noteElement.innerHTML = `
+                    <span>${note.title}</span>
+                    <button class="edit-note" data-id="${note.id}">Edit</button>
+                    <button class="open-note" data-id="${note.id}">Open</button>
                 `;
-                targetList.appendChild(taskElement);
-            } else {
-                taskElement.querySelector('.task-text span:nth-child(2)').textContent = task.text;
-                taskElement.querySelector('.task-date').textContent = task.dueDate ? `Due: ${task.dueDate}` : '';
+                notesList.appendChild(noteElement);
             }
-        }
 
-        function saveNoteToLocalStorage(note) {
-            const notes = getNotesFromLocalStorage();
-            notes.push(note);
-            localStorage.setItem('notes', JSON.stringify(notes));
-        }
-
-        function updateNoteInLocalStorage(id, title, content) {
-            let notes = getNotesFromLocalStorage();
-            notes = notes.map(note => note.id === id ? { ...note, title, content } : note);
-            localStorage.setItem('notes', JSON.stringify(notes));
-            updateNoteInDOM(id, title);
-        }
-
-        function updateNoteInDOM(id, title) {
-            const noteElement = document.getElementById(`note-${id}`);
-            if (noteElement) {
-                noteElement.querySelector('span').textContent = title;
-            }
-        }
-
-        function getNoteFromLocalStorageById(id) {
-            const notes = getNotesFromLocalStorage();
-            return notes.find(note => note.id === id);
-        }
-
-        function loadNotesFromLocalStorage() {
-            const notes = getNotesFromLocalStorage();
-            notes.forEach(note => addNoteToDOM(note));
-        }
-
-        function getNotesFromLocalStorage() {
-            const notes = localStorage.getItem('notes');
-            return notes ? JSON.parse(notes) : [];
-        }
-
-        function saveTodoToLocalStorage(task) {
-            const todos = getTodosFromLocalStorage();
-            todos.push(task);
-            localStorage.setItem('todos', JSON.stringify(todos));
-        }
-
-        function loadTodosFromLocalStorage() {
-            const todos = getTodosFromLocalStorage();
-            todos.forEach(todo => addTodoToDOM(todo, todoListGlobal));
-        }
-
-        function loadTodosForNoteFromLocalStorage(noteId) {
-            const todos = getTodosFromLocalStorage();
-            const noteTodos = todos.filter(todo => todo.noteId === noteId);
-            noteTodos.forEach(todo => addTodoToDOM(todo, todoListNote));
-        }
-
-        function getTodosFromLocalStorage() {
-            const todos = localStorage.getItem('todos');
-            return todos ? JSON.parse(todos) : [];
-        }
-
-        function updateTaskOrder() {
-            const tasks = Array.from(todoListGlobal.children).map((task, index) => {
-                return {
-                    id: task.id,
-                    text: task.querySelector('.task-text span:nth-child(2)').textContent,
-                    dueDate: task.querySelector('.task-date').textContent.replace('Due: ', ''),
-                    order: index
-                };
-            });
-            localStorage.setItem('todos', JSON.stringify(tasks));
-        }
-
-        document.querySelectorAll('.todo-list').forEach(list => {
-            new Sortable(list, {
-                handle: '.drag-handle',
-                animation: 150,
-                onEnd: updateTaskOrder
-            });
-        });
-
-        function removeTaskFromLocalStorage(id) {
-            let todos = getTodosFromLocalStorage();
-            todos = todos.filter(todo => todo.id !== id);
-            localStorage.setItem('todos', JSON.stringify(todos));
-        }
-
-        function removeTaskFromDOM(id) {
-            const taskElement = document.getElementById(id);
-            if (taskElement) {
-                taskElement.remove();
-            }
-        }
-
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('delete')) {
+            function handleNoteActions(e) {
                 const id = e.target.getAttribute('data-id');
-                removeTaskFromDOM(id);
-                removeTaskFromLocalStorage(id);
-            } else if (e.target.classList.contains('edit')) {
-                const id = e.target.getAttribute('data-id');
+                if (e.target.classList.contains('edit-note')) {
+                    startEditingNote(id);
+                } else if (e.target.classList.contains('open-note')) {
+                    openNoteContent(id);
+                }
+            }
+
+            function startEditingNote(id) {
+                const note = getNoteFromLocalStorageById(id);
+                if (note) {
+                    noteTitleInput.value = note.title;
+                    noteContentInput.value = note.content;
+                    currentNoteId = id;
+                    noteFormContainer.style.display = 'block';
+                    noteContentContainer.style.display = 'none';
+                    notesListContainer.style.display = 'none';
+                    todoSectionContainer.style.display = 'none';
+                    todoListNote.innerHTML = '';
+                    loadTodosForNoteFromLocalStorage(id);
+                }
+            }
+
+            function openNoteContent(id) {
+                const note = getNoteFromLocalStorageById(id);
+                if (note) {
+                    displayNoteContent(note.title, note.content);
+                    currentNoteId = id;
+                    noteFormContainer.style.display = 'none';
+                    noteContentContainer.style.display = 'block';
+                    notesListContainer.style.display = 'none';
+                    todoSectionContainer.style.display = 'none';
+                    todoListNote.innerHTML = '';
+                    loadTodosForNoteFromLocalStorage(id);
+                }
+            }
+
+            function displayNoteContent(title, content) {
+                noteTitleDisplay.textContent = title;
+                noteMarkdownDisplay.innerHTML = marked.parse(content);
+            }
+
+            function addTodoForNote(e) {
+                e.preventDefault();
+                const taskText = todoInputNote.value.trim();
+                const dueDate = todoDueDateNote.value;
+                if (taskText !== '') {
+                    const id = Date.now().toString();
+                    const task = { text: taskText, id: id, dueDate: dueDate, noteId: currentNoteId };
+                    addTodoToDOM(task, todoListNote);
+                    saveTodoToLocalStorage(task);
+                    todoInputNote.value = '';
+                    todoDueDateNote.value = '';
+                }
+            }
+
+            function addTodoToDOM(task, targetList) {
+                let taskElement = document.getElementById(task.id);
+                if (!taskElement) {
+                    taskElement = document.createElement('li');
+                    taskElement.id = task.id;
+                    taskElement.innerHTML = `
+                        <div class="task-text">
+                            <span class="drag-handle">☰</span>
+                            <span>${task.text}</span>
+                        </div>
+                        <div class="task-date">${task.dueDate ? `Due: ${task.dueDate}` : ''}</div>
+                        <div class="task-actions">
+                            <button class="edit" data-id="${task.id}">Edit</button>
+                            <button class="delete" data-id="${task.id}">Delete</button>
+                        </div>
+                    `;
+                    targetList.appendChild(taskElement);
+                } else {
+                    taskElement.querySelector('.task-text span:nth-child(2)').textContent = task.text;
+                    taskElement.querySelector('.task-date').textContent = task.dueDate ? `Due: ${task.dueDate}` : '';
+                }
+            }
+
+            function saveNoteToLocalStorage(note) {
+                const notes = getNotesFromLocalStorage();
+                notes.push(note);
+                localStorage.setItem('notes', JSON.stringify(notes));
+            }
+
+            function updateNoteInLocalStorage(id, title, content) {
+                let notes = getNotesFromLocalStorage();
+                notes = notes.map(note => note.id === id ? { ...note, title, content } : note);
+                localStorage.setItem('notes', JSON.stringify(notes));
+                updateNoteInDOM(id, title);
+            }
+
+            function updateNoteInDOM(id, title) {
+                const noteElement = document.getElementById(`note-${id}`);
+                if (noteElement) {
+                    noteElement.querySelector('span').textContent = title;
+                }
+            }
+
+            function getNoteFromLocalStorageById(id) {
+                const notes = getNotesFromLocalStorage();
+                return notes.find(note => note.id === id);
+            }
+
+            function loadNotesFromLocalStorage() {
+                const notes = getNotesFromLocalStorage();
+                notes.forEach(note => addNoteToDOM(note));
+            }
+
+            function getNotesFromLocalStorage() {
+                const notes = localStorage.getItem('notes');
+                return notes ? JSON.parse(notes) : [];
+            }
+
+            function saveTodoToLocalStorage(task) {
+                const todos = getTodosFromLocalStorage();
+                todos.push(task);
+                localStorage.setItem('todos', JSON.stringify(todos));
+            }
+
+            function loadTodosFromLocalStorage() {
+                const todos = getTodosFromLocalStorage();
+                todos.forEach(todo => addTodoToDOM(todo, todoListGlobal));
+            }
+
+            function loadTodosForNoteFromLocalStorage(noteId) {
+                const todos = getTodosFromLocalStorage();
+                const noteTodos = todos.filter(todo => todo.noteId === noteId);
+                noteTodos.forEach(todo => addTodoToDOM(todo, todoListNote));
+            }
+
+            function getTodosFromLocalStorage() {
+                const todos = localStorage.getItem('todos');
+                return todos ? JSON.parse(todos) : [];
+            }
+
+            function updateTaskOrder() {
+                const tasks = Array.from(todoListGlobal.children).map((task, index) => {
+                    return {
+                        id: task.id,
+                        text: task.querySelector('.task-text span:nth-child(2)').textContent,
+                        dueDate: task.querySelector('.task-date').textContent.replace('Due: ', ''),
+                        order: index
+                    };
+                });
+                localStorage.setItem('todos', JSON.stringify(tasks));
+            }
+
+            document.querySelectorAll('.todo-list').forEach(list => {
+                new Sortable(list, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    onEnd: updateTaskOrder
+                });
+            });
+
+            function removeTaskFromLocalStorage(id) {
+                let todos = getTodosFromLocalStorage();
+                todos = todos.filter(todo => todo.id !== id);
+                localStorage.setItem('todos', JSON.stringify(todos));
+            }
+
+            function removeTaskFromDOM(id) {
+                const taskElement = document.getElementById(id);
+                if (taskElement) {
+                    taskElement.remove();
+                }
+            }
+
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('delete')) {
+                    const id = e.target.getAttribute('data-id');
+                    removeTaskFromDOM(id);
+                    removeTaskFromLocalStorage(id);
+                } else if (e.target.classList.contains('edit')) {
+                    const id = e.target.getAttribute('data-id');
+                    const task = getTaskFromLocalStorageById(id);
+                    if (task) {
+                        todoInputNote.value = task.text;
+                        todoDueDateNote.value = task.dueDate;
+                        editingTaskId = id;
+                    }
+                }
+            });
+
+            function getTaskFromLocalStorageById(id) {
+                const todos = getTodosFromLocalStorage();
+                return todos.find(todo => todo.id === id);
+            }
+
+            function updateTaskInLocalStorage(id, text, dueDate) {
+                let todos = getTodosFromLocalStorage();
+                todos = todos.map(todo => todo.id === id ? { ...todo, text, dueDate } : todo);
+                localStorage.setItem('todos', JSON.stringify(todos));
+            }
+
+            function startEditingTask(id) {
                 const task = getTaskFromLocalStorageById(id);
                 if (task) {
                     todoInputNote.value = task.text;
-                    todoDueDateNote.value = task.dueDate;
+                    todoDueDateNote.value = task.dueDate || '';
                     editingTaskId = id;
                 }
             }
-        });
 
-        function getTaskFromLocalStorageById(id) {
-            const todos = getTodosFromLocalStorage();
-            return todos.find(todo => todo.id === id);
-        }
-
-        function updateTaskInLocalStorage(id, text, dueDate) {
-            let todos = getTodosFromLocalStorage();
-            todos = todos.map(todo => todo.id === id ? { ...todo, text, dueDate } : todo);
-            localStorage.setItem('todos', JSON.stringify(todos));
-        }
-
-        function startEditingTask(id) {
-            const task = getTaskFromLocalStorageById(id);
-            if (task) {
-                todoInputNote.value = task.text;
-                todoDueDateNote.value = task.dueDate || '';
-                editingTaskId = id;
+            // Function to handle editing a task
+            function editTask(id, text, dueDate) {
+                const taskElement = document.getElementById(id);
+                if (taskElement) {
+                    taskElement.querySelector('.task-text span:nth-child(2)').textContent = text;
+                    taskElement.querySelector('.task-date').textContent = dueDate ? `Due: ${dueDate}` : '';
+                }
             }
-        }
-    });
+
+            // Event listener for submitting edited task
+            todoFormNote.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const taskText = todoInputNote.value.trim();
+                const dueDate = todoDueDateNote.value;
+                if (editingTaskId) {
+                    updateTaskInLocalStorage(editingTaskId, taskText, dueDate);
+                    editTask(editingTaskId, taskText, dueDate);
+                    editingTaskId = null;
+                } else {
+                    addTodoForNote(e);
+                }
+                todoInputNote.value = '';
+                todoDueDateNote.value = '';
+            });
+
+            // Initial load
+            showNotesListButton.click();
+        });
     </script>
 </body>
 </html>
+
+                
