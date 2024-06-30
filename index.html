@@ -68,12 +68,13 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
     <script>
         let notes = JSON.parse(localStorage.getItem('notes')) || [];
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
         let editingNoteId = null;
         let editingTaskId = null;
+        const converter = new showdown.Converter();
 
         function showPage(page) {
             document.getElementById('notes-page').classList.add('hidden');
@@ -94,7 +95,7 @@
                 noteDiv.classList.add('note');
                 noteDiv.innerHTML = `
                     <h3>${note.title}</h3>
-                    <div>${marked(note.content)}</div>
+                    <div>${converter.makeHtml(note.content)}</div>
                     <ul>
                         ${note.tasks.map(taskId => {
                             const task = tasks.find(t => t.id === taskId);
@@ -177,7 +178,6 @@
 
         function editNote(id) {
             const note = notes.find(n => n.id === id);
-            notes = notes.filter(n => n.id !== id);
             showNoteForm(note);
         }
 
@@ -266,3 +266,4 @@
     </script>
 </body>
 </html>
+                
