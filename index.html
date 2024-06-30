@@ -283,7 +283,7 @@
             const todoListNoteDisplay = document.getElementById('todo-list-note-display');
             const todoListGlobal = document.getElementById('todo-list-global');
             const noteFormContainer = document.querySelector('.note-form');
-            const notesListContainer = document.querySelector('.notes-list');
+            const notesListContainer = document.querySelector('.notes-list-container');
             const noteContentContainer = document.querySelector('.note-content');
             const todoSectionContainer = document.querySelector('.todo-section');
 
@@ -527,7 +527,6 @@
                 const notes = localStorage.getItem('notes');
                 return notes ? JSON.parse(notes) : [];
             }
-
             function saveTodoToLocalStorage(task) {
                 const todos = getTodosFromLocalStorage();
                 todos.push(task);
@@ -543,8 +542,8 @@
             function loadTodosForNoteFromLocalStorage(noteId) {
                 const todos = getTodosFromLocalStorage();
                 const noteTodos = todos.filter(todo => todo.noteId === noteId);
-                noteListNote.innerHTML = ''; // Clear previous todos
-                noteListNoteDisplay.innerHTML = ''; // Clear previous todos
+                todoListNote.innerHTML = ''; // Clear previous todos
+                todoListNoteDisplay.innerHTML = ''; // Clear previous todos
                 noteTodos.forEach(todo => addTodoToDOM(todo, todoListNote));
                 noteTodos.forEach(todo => addTodoToDOM(todo, todoListNoteDisplay));
             }
