@@ -33,9 +33,17 @@
             display: flex;
             align-items: center;
         }
-        .task-handle {
-            cursor: move;
+        .task-controls {
+            display: flex;
+            flex-direction: column;
             margin-right: 10px;
+        }
+        .task-controls button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin: 2px 0;
         }
         .danger-button {
             background-color: red;
@@ -45,7 +53,6 @@
             cursor: pointer;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.css">
 </head>
 <body>
     <div class="container">
@@ -71,7 +78,7 @@
         </div>
         <div id="tasks-page" class="hidden">
             <h2>Tasks</h2>
-            <div id="tasks-list" class="sortable-list"></div>
+            <div id="tasks-list"></div>
             <button onclick="showTaskForm()">Add Task</button>
             <div id="task-form" class="hidden">
                 <h3>New Task</h3>
@@ -84,7 +91,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.js"></script>
     <script>
         let notes = JSON.parse(localStorage.getItem('notes')) || [];
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
@@ -208,37 +214,46 @@
         function displayTasks() {
             const tasksList = document.getElementById('tasks-list');
             tasksList.innerHTML = '';
-            tasks.forEach(task => {
+            tasks.forEach((task, index) => {
                 const relatedNote = notes.find(note => note.tasks.includes(task.id));
                 const relatedNoteTitle = relatedNote ? ` (Note: ${relatedNote.title})` : '';
                 const taskDiv = document.createElement('div');
                 taskDiv.classList.add('task');
                 taskDiv.dataset.id = task.id;
                 taskDiv.innerHTML = `
-                    <div class="task-handle">☰</div>
-                            <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                    <div class="task-controls">
+                        <button onclick="moveTaskUp(${index})">▲</button>
+                        <button onclick="moveTaskDown(${index})">▼</button>
+                    </div>
+                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                     <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                        <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
                     ${relatedNoteTitle}
                     <button onclick="editTask(${task.id})">Edit</button>
                     <button onclick="deleteTask(${task.id})">Delete</button>
                 `;
                 tasksList.appendChild(taskDiv);
             });
+        }
 
-            // Initialize Dragula for drag-and-drop sorting if not already initialized
-            if (!window.dragulaInitialized) {
-                dragula([document.getElementById('tasks-list')]).on('drop', function (el) {
-                    const newOrder = Array.from(document.getElementById('tasks-list').children).map(child => {
-                        const taskId = parseInt(child.dataset.id);
-                        return tasks.find(task => task.id === taskId);
-                    });
-                    tasks = newOrder;
-                    localStorage.setItem('tasks', JSON.stringify(tasks));
-                    displayTasks();
-                });
-                window.dragulaInitialized = true;
-            }
+        function moveTaskUp(index) {
+            if (index <= 0) return; // Already at the top
+            const temp = tasks[index];
+            tasks[index] = tasks[index - 1];
+            tasks[index - 1] = temp;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
+            displayNotes();
+        }
+
+        function moveTaskDown(index) {
+            if (index >= tasks.length - 1) return; // Already at the bottom
+            const temp = tasks[index];
+            tasks[index] = tasks[index + 1];
+            tasks[index + 1] = temp;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
+            displayNotes();
         }
 
         function showTaskForm(task) {
@@ -314,5 +329,3 @@
     </script>
 </body>
 </html>
-
-                   
