@@ -30,6 +30,12 @@
         }
         .task {
             margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        .task-handle {
+            cursor: move;
+            margin-right: 10px;
         }
         .danger-button {
             background-color: red;
@@ -38,10 +44,8 @@
             padding: 10px;
             cursor: pointer;
         }
-        .sort-buttons {
-            margin-bottom: 10px;
-        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.css">
 </head>
 <body>
     <div class="container">
@@ -67,12 +71,7 @@
         </div>
         <div id="tasks-page" class="hidden">
             <h2>Tasks</h2>
-            <div class="sort-buttons">
-                <button onclick="sortTasks('description')">Sort by Description</button>
-                <button onclick="sortTasks('dueDate')">Sort by Due Date</button>
-                <button onclick="sortTasks('status')">Sort by Status</button>
-            </div>
-            <div id="tasks-list"></div>
+            <div id="tasks-list" class="sortable-list"></div>
             <button onclick="showTaskForm()">Add Task</button>
             <div id="task-form" class="hidden">
                 <h3>New Task</h3>
@@ -85,6 +84,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <script>
         let notes = JSON.parse(localStorage.getItem('notes')) || [];
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
@@ -214,6 +214,7 @@
                 const taskDiv = document.createElement('div');
                 taskDiv.classList.add('task');
                 taskDiv.innerHTML = `
+                    <div class="task-handle">☰</div>
                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                     <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
                     <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
@@ -222,6 +223,21 @@
                     <button onclick="deleteTask(${task.id})">Delete</button>
                 `;
                 tasksList.appendChild(taskDiv);
+            });
+
+            // Initialize SortableJS for drag-and-drop sorting
+            new Sortable(tasksList, {
+                handle: '.task-handle',
+                animation: 150,
+                onEnd: function (evt) {
+                    const newOrder = Array.from(tasksList.children).map(child => {
+                        const taskId = parseInt(child.querySelector('input[type="checkbox"]').getAttribute('onclick').match(/\d+/)[0]);
+                        return tasks.find(task => task.id === taskId);
+                    });
+                    tasks = newOrder;
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    displayTasks();
+                }
             });
         }
 
@@ -291,21 +307,6 @@
                 displayNotes();
                 displayTasks();
             }
-        }
-
-        function sortTasks(criteria) {
-            switch (criteria) {
-                case 'description':
-                    tasks.sort((a, b) => a.description.localeCompare(b.description));
-                    break;
-                case 'dueDate':
-                    tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-                    break;
-                case 'status':
-                    tasks.sort((a, b) => a.isDone - b.isDone);
-                    break;
-            }
-            displayTasks();
         }
 
         // Initial display
