@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decentralized To-Do App</title>
+    <title>LocalStorage To-Do App</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -140,30 +140,13 @@
             <button type="submit">Add</button>
         </form>
         <ul id="todo-list"></ul>
-        <button id="share-button">Share</button>
-        <p id="share-url"></p>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('todo-form');
             const input = document.getElementById('todo-input');
             const list = document.getElementById('todo-list');
-            const shareButton = document.getElementById('share-button');
-            const shareUrl = document.getElementById('share-url');
-
-            // Initialize GUN with a public relay server
-            const gun = Gun({
-                peers: ['https://gun-manhattan.herokuapp.com/gun']
-            });
-
-            // Get reference to a specific node in the GUN database
-            const todos = gun.get('todos');
-
-            form.addEventListener('submit', addTask);
-            list.addEventListener('click', removeTask);
-            shareButton.addEventListener('click', shareList);
 
             // Initialize SortableJS on the list
             const sortable = new Sortable(list, {
@@ -172,22 +155,20 @@
                 onEnd: updateTaskOrder
             });
 
-            // Load tasks from GUN database and listen for changes
-            todos.map().on((task, id) => {
-                if (task) {
-                    addTaskToDOM({ text: task.text, id: id, order: task.order });
-                } else {
-                    removeTaskFromDOM(id);
-                }
-            });
+            form.addEventListener('submit', addTask);
+            list.addEventListener('click', removeTask);
+
+            // Load tasks from LocalStorage
+            loadTasksFromLocalStorage();
 
             function addTask(e) {
                 e.preventDefault();
                 const taskText = input.value.trim();
                 if (taskText !== '') {
-                    const id = Gun.text.random();
-                    const task = { text: taskText, id: id, order: Date.now() };
-                    todos.get(id).put(task);
+                    const id = Date.now().toString();
+                    const task = { text: taskText, id: id };
+                    addTaskToDOM(task);
+                    saveTaskToLocalStorage(task);
                     input.value = '';
                 }
             }
@@ -206,13 +187,13 @@
                 } else {
                     taskElement.querySelector('span:nth-child(2)').textContent = task.text;
                 }
-                updateTaskOrder();
             }
 
             function removeTask(e) {
                 if (e.target.tagName === 'BUTTON') {
                     const id = e.target.getAttribute('data-id');
-                    todos.get(id).put(null);
+                    removeTaskFromDOM(id);
+                    removeTaskFromLocalStorage(id);
                 }
             }
 
@@ -223,16 +204,33 @@
                 }
             }
 
-            function shareList() {
-                shareUrl.textContent = `${window.location.href.split('?')[0]}?peer=${location.host}`;
+            function saveTaskToLocalStorage(task) {
+                const tasks = getTasksFromLocalStorage();
+                tasks.push(task);
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            function removeTaskFromLocalStorage(id) {
+                let tasks = getTasksFromLocalStorage();
+                tasks = tasks.filter(task => task.id !== id);
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            function loadTasksFromLocalStorage() {
+                const tasks = getTasksFromLocalStorage();
+                tasks.forEach(task => addTaskToDOM(task));
+            }
+
+            function getTasksFromLocalStorage() {
+                const tasks = localStorage.getItem('tasks');
+                return tasks ? JSON.parse(tasks) : [];
             }
 
             function updateTaskOrder() {
-                const tasks = Array.from(list.children);
-                tasks.forEach((task, index) => {
-                    const id = task.id;
-                    todos.get(id).get('order').put(index);
+                const tasks = Array.from(list.children).map((task, index) => {
+                    return { id: task.id, text: task.querySelector('span:nth-child(2)').textContent, order: index };
                 });
+                localStorage.setItem('tasks', JSON.stringify(tasks));
             }
         });
     </script>
