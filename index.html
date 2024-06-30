@@ -224,7 +224,7 @@
             const description = document.getElementById('task-desc').value;
             const dueDate = document.getElementById('task-due-date').value;
             if (editingTaskId) {
-                tasks = tasks.map(t => t.id === editingTaskId ? { id: editingTaskId, description, isDone: false, dueDate } : t);
+                tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate } : t);
             } else {
                 const task = { id: Date.now(), description, isDone: false, dueDate };
                 tasks.push(task);
@@ -248,8 +248,14 @@
 
         function deleteTask(id) {
             tasks = tasks.filter(t => t.id !== id);
+            notes = notes.map(note => {
+                note.tasks = note.tasks.filter(taskId => taskId !== id);
+                return note;
+            });
             localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('notes', JSON.stringify(notes));
             displayTasks();
+            displayNotes();
         }
 
         // Initial display
