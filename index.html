@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes and Tasks App</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@material-ui/core@4.11.4/umd/material-ui.production.min.js">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <script src="https://unpkg.com/@mui/material@5.15.21/umd/material-ui.development.js"></script>
+    <script src="https://unpkg.com/@emotion/react@11.9.3/umd/emotion-react.development.js"></script>
+    <script src="https://unpkg.com/@emotion/styled@11.9.3/umd/emotion-styled.development.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             padding: 20px;
             background-color: #f4f5f7;
         }
@@ -44,7 +48,6 @@
     <div id="root"></div>
     <script src="https://cdn.jsdelivr.net/npm/react@17/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@material-ui/core@4.11.4/umd/material-ui.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
     <script>
         const { useState, useEffect } = React;
@@ -182,12 +185,12 @@
                     </Box>
                     <Box className="kanban-column">
                         <Typography variant="h6">High Priority</Typography>
-                        {tasks.filter(t => t.status === 'high-priority').map(task => (
+                                {tasks.filter(t => t.status === 'high-priority').map(task => (
                             <Paper key={task.id} style={{ margin: '10px 0', padding: '10px' }}>
                                 <Box display="flex" alignItems="center">
                                     <Checkbox checked={task.isDone} onChange={() => toggleTaskDone(task.id)} />
                                     <Typography variant="body1" className={task.isDone ? 'task-done' : ''}>{task.description}</Typography>
-                                        <Typography variant="body2" style={{ marginLeft: 'auto' }}>{task.dueDate}</Typography>
+                                    <Typography variant="body2" style={{ marginLeft: 'auto' }}>{task.dueDate}</Typography>
                                     <Button onClick={() => handleTaskFormOpen(task)}>Edit</Button>
                                     <Button onClick={() => deleteTask(task.id)} color="secondary">Delete</Button>
                                 </Box>
