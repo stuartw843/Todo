@@ -335,13 +335,16 @@
             });
 
             document.addEventListener('click', function (e) {
-                if (e.target.classList.contains('delete')) {
-                    const id = e.target.getAttribute('data-id');
+                const id = e.target.getAttribute('data-id');
+                if (e.target.classList.contains('delete-note')) {
+                    deleteNoteFromDOM(id);
+                    deleteNoteFromLocalStorage(id);
+                    loadTodosFromLocalStorage(); // Ensure global todos are updated
+                } else if (e.target.classList.contains('delete')) {
                     removeTaskFromDOM(id);
                     removeTaskFromLocalStorage(id);
                     loadTodosFromLocalStorage(); // Ensure global todos are updated
                 } else if (e.target.classList.contains('edit')) {
-                    const id = e.target.getAttribute('data-id');
                     const task = getTaskFromLocalStorageById(id);
                     if (task) {
                         todoInputNote.value = task.text;
@@ -383,6 +386,7 @@
                     <span>${note.title}</span>
                     <button class="edit-note" data-id="${note.id}">Edit</button>
                     <button class="open-note" data-id="${note.id}">Open</button>
+                    <button class="delete-note" data-id="${note.id}">Delete</button>
                 `;
                 notesList.appendChild(noteElement);
             }
@@ -473,6 +477,16 @@
                 }
             }
 
+            function deleteNoteFromDOM(id) {
+                const noteElement = document.getElementById(`note-${id}`);
+                if (noteElement) {
+                    noteElement.remove();
+                }
+                const todos = getTodosFromLocalStorage();
+                const filteredTodos = todos.filter(todo => todo.noteId !== id);
+                localStorage.setItem('todos', JSON.stringify(filteredTodos));
+            }
+
             function saveNoteToLocalStorage(note) {
                 const notes = getNotesFromLocalStorage();
                 notes.push(note);
@@ -496,6 +510,12 @@
             function getNoteFromLocalStorageById(id) {
                 const notes = getNotesFromLocalStorage();
                 return notes.find(note => note.id === id);
+            }
+
+            function deleteNoteFromLocalStorage(id) {
+                let notes = getNotesFromLocalStorage();
+                notes = notes.filter(note => note.id !== id);
+                localStorage.setItem('notes', JSON.stringify(notes));
             }
 
             function loadNotesFromLocalStorage() {
@@ -523,6 +543,8 @@
             function loadTodosForNoteFromLocalStorage(noteId) {
                 const todos = getTodosFromLocalStorage();
                 const noteTodos = todos.filter(todo => todo.noteId === noteId);
+                noteListNote.innerHTML = ''; // Clear previous todos
+                noteListNoteDisplay.innerHTML = ''; // Clear previous todos
                 noteTodos.forEach(todo => addTodoToDOM(todo, todoListNote));
                 noteTodos.forEach(todo => addTodoToDOM(todo, todoListNoteDisplay));
             }
@@ -582,5 +604,3 @@
     </script>
 </body>
 </html>
-            
-                
