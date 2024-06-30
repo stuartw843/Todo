@@ -45,7 +45,7 @@
             cursor: pointer;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.css">
 </head>
 <body>
     <div class="container">
@@ -84,7 +84,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.js"></script>
     <script>
         let notes = JSON.parse(localStorage.getItem('notes')) || [];
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
@@ -218,7 +218,7 @@
                     <div class="task-handle">☰</div>
                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                     <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                        <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                            <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
                     ${relatedNoteTitle}
                     <button onclick="editTask(${task.id})">Edit</button>
                     <button onclick="deleteTask(${task.id})">Delete</button>
@@ -226,19 +226,15 @@
                 tasksList.appendChild(taskDiv);
             });
 
-            // Initialize SortableJS for drag-and-drop sorting
-            new Sortable(tasksList, {
-                handle: '.task-handle',
-                animation: 150,
-                onEnd: function (evt) {
-                    const newOrder = Array.from(tasksList.children).map(child => {
-                        const taskId = parseInt(child.dataset.id);
-                        return tasks.find(task => task.id === taskId);
-                    });
-                    tasks = newOrder;
-                    localStorage.setItem('tasks', JSON.stringify(tasks));
-                    displayTasks();
-                }
+            // Initialize Dragula for drag-and-drop sorting
+            dragula([document.getElementById('tasks-list')]).on('drop', function (el) {
+                const newOrder = Array.from(document.getElementById('tasks-list').children).map(child => {
+                    const taskId = parseInt(child.dataset.id);
+                    return tasks.find(task => task.id === taskId);
+                });
+                tasks = newOrder;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                displayTasks();
             });
         }
 
