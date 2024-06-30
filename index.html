@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes and Tasks App</title>
     <style>
@@ -31,6 +31,13 @@
         .task {
             margin: 5px 0;
         }
+        .danger-button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -44,6 +51,7 @@
             <h2>Notes</h2>
             <div id="notes-list"></div>
             <button onclick="showNoteForm()">Add Note</button>
+            <button class="danger-button" onclick="deleteAllNotesAndTasks()">Delete All Notes and Tasks</button>
             <div id="note-form" class="hidden">
                 <h3>New Note</h3>
                 <input type="text" id="note-title" placeholder="Title"><br>
@@ -261,9 +269,20 @@
             displayNotes();
         }
 
+        function deleteAllNotesAndTasks() {
+            if (confirm("Are you sure you want to delete all notes and tasks? This action cannot be undone.")) {
+                notes = [];
+                tasks = [];
+                localStorage.setItem('notes', JSON.stringify(notes));
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                displayNotes();
+                displayTasks();
+            }
+        }
+
         // Initial display
         showPage('notes');
     </script>
 </body>
 </html>
-                
+        
