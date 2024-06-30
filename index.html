@@ -177,6 +177,7 @@
 
         function editNote(id) {
             const note = notes.find(n => n.id === id);
+            notes = notes.filter(n => n.id !== id);
             showNoteForm(note);
         }
 
@@ -232,6 +233,7 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
             hideTaskForm();
             displayTasks();
+            displayNotes();
         }
 
         function toggleTaskDone(id) {
@@ -239,6 +241,7 @@
             task.isDone = !task.isDone;
             localStorage.setItem('tasks', JSON.stringify(tasks));
             displayTasks();
+            displayNotes();
         }
 
         function editTask(id) {
