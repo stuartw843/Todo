@@ -38,6 +38,9 @@
             padding: 10px;
             cursor: pointer;
         }
+        .sort-buttons {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -64,6 +67,11 @@
         </div>
         <div id="tasks-page" class="hidden">
             <h2>Tasks</h2>
+            <div class="sort-buttons">
+                <button onclick="sortTasks('description')">Sort by Description</button>
+                <button onclick="sortTasks('dueDate')">Sort by Due Date</button>
+                <button onclick="sortTasks('status')">Sort by Status</button>
+            </div>
             <div id="tasks-list"></div>
             <button onclick="showTaskForm()">Add Task</button>
             <div id="task-form" class="hidden">
@@ -285,10 +293,23 @@
             }
         }
 
+        function sortTasks(criteria) {
+            switch (criteria) {
+                case 'description':
+                    tasks.sort((a, b) => a.description.localeCompare(b.description));
+                    break;
+                case 'dueDate':
+                    tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+                    break;
+                case 'status':
+                    tasks.sort((a, b) => a.isDone - b.isDone);
+                    break;
+            }
+            displayTasks();
+        }
+
         // Initial display
         showPage('notes');
     </script>
 </body>
 </html>
-
-            
