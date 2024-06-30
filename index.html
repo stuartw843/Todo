@@ -237,12 +237,6 @@
                 <textarea id="note-content" placeholder="Note Content (Markdown)"></textarea>
                 <button type="submit">Save Note</button>
             </form>
-        </div>
-        <div class="note-content">
-            <div class="note-display">
-                <div class="note-title"></div>
-                <div class="note-markdown"></div>
-            </div>
             <div class="note-todos">
                 <h2>To-Do Items for Note</h2>
                 <form id="todo-form-note">
@@ -251,6 +245,16 @@
                     <button type="submit">Add</button>
                 </form>
                 <ul id="todo-list-note"></ul>
+            </div>
+        </div>
+        <div class="note-content">
+            <div class="note-display">
+                <div class="note-title"></div>
+                <div class="note-markdown"></div>
+            </div>
+            <div class="note-todos">
+                <h2>To-Do Items for Note</h2>
+                <ul id="todo-list-note-display"></ul>
             </div>
         </div>
         <div class="todo-section">
@@ -276,6 +280,7 @@
             const todoInputNote = document.getElementById('todo-input-note');
             const todoDueDateNote = document.getElementById('todo-due-date-note');
             const todoListNote = document.getElementById('todo-list-note');
+            const todoListNoteDisplay = document.getElementById('todo-list-note-display');
             const todoListGlobal = document.getElementById('todo-list-global');
             const noteFormContainer = document.querySelector('.note-form');
             const notesListContainer = document.querySelector('.notes-list');
@@ -283,6 +288,7 @@
             const todoSectionContainer = document.querySelector('.todo-section');
 
             let currentNoteId = null;
+            let editingTaskId = null;
 
             addNoteButton.addEventListener('click', () => {
                 currentNoteId = null;
@@ -311,7 +317,36 @@
 
             noteForm.addEventListener('submit', saveNote);
             notesList.addEventListener('click', handleNoteActions);
-            todoFormNote.addEventListener('submit', addTodoForNote);
+            todoFormNote.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const taskText = todoInputNote.value.trim();
+                const dueDate = todoDueDateNote.value;
+                if (editingTaskId) {
+                    updateTaskInLocalStorage(editingTaskId, taskText, dueDate);
+                    editTask(editingTaskId, taskText, dueDate);
+                    editingTaskId = null;
+                } else {
+                    addTodoForNote();
+                }
+                todoInputNote.value = '';
+                todoDueDateNote.value = '';
+            });
+
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('delete')) {
+                    const id = e.target.getAttribute('data-id');
+                    removeTaskFromDOM(id);
+                    removeTaskFromLocalStorage(id);
+                } else if (e.target.classList.contains('edit')) {
+                    const id = e.target.getAttribute('data-id');
+                    const task = getTaskFromLocalStorageById(id);
+                    if (task) {
+                        todoInputNote.value = task.text;
+                        todoDueDateNote.value = task.dueDate;
+                        editingTaskId = id;
+                    }
+                }
+            });
 
             // Load notes and todos from LocalStorage
             loadNotesFromLocalStorage();
@@ -334,6 +369,7 @@
                     noteFormContainer.style.display = 'none';
                     displayNoteContent(noteTitle, noteContent);
                     noteContentContainer.style.display = 'block';
+                    loadTodosForNoteFromLocalStorage(currentNoteId);
                 }
             }
 
@@ -381,7 +417,6 @@
                     noteContentContainer.style.display = 'block';
                     notesListContainer.style.display = 'none';
                     todoSectionContainer.style.display = 'none';
-                    todoListNote.innerHTML = '';
                     loadTodosForNoteFromLocalStorage(id);
                 }
             }
@@ -391,17 +426,15 @@
                 noteMarkdownDisplay.innerHTML = marked.parse(content);
             }
 
-            function addTodoForNote(e) {
-                e.preventDefault();
+            function addTodoForNote() {
                 const taskText = todoInputNote.value.trim();
                 const dueDate = todoDueDateNote.value;
                 if (taskText !== '') {
                     const id = Date.now().toString();
                     const task = { text: taskText, id: id, dueDate: dueDate, noteId: currentNoteId };
                     addTodoToDOM(task, todoListNote);
+                    addTodoToDOM(task, todoListNoteDisplay);
                     saveTodoToLocalStorage(task);
-                    todoInputNote.value = '';
-                    todoDueDateNote.value = '';
                 }
             }
 
@@ -425,6 +458,14 @@
                 } else {
                     taskElement.querySelector('.task-text span:nth-child(2)').textContent = task.text;
                     taskElement.querySelector('.task-date').textContent = task.dueDate ? `Due: ${task.dueDate}` : '';
+                }
+            }
+
+            function editTask(id, text, dueDate) {
+                const taskElement = document.getElementById(id);
+                if (taskElement) {
+                    taskElement.querySelector('.task-text span:nth-child(2)').textContent = text;
+                    taskElement.querySelector('.task-date').textContent = dueDate ? `Due: ${dueDate}` : '';
                 }
             }
 
@@ -478,6 +519,7 @@
                 const todos = getTodosFromLocalStorage();
                 const noteTodos = todos.filter(todo => todo.noteId === noteId);
                 noteTodos.forEach(todo => addTodoToDOM(todo, todoListNote));
+                noteTodos.forEach(todo => addTodoToDOM(todo, todoListNoteDisplay));
             }
 
             function getTodosFromLocalStorage() {
@@ -518,22 +560,6 @@
                 }
             }
 
-            document.addEventListener('click', function (e) {
-                if (e.target.classList.contains('delete')) {
-                    const id = e.target.getAttribute('data-id');
-                    removeTaskFromDOM(id);
-                    removeTaskFromLocalStorage(id);
-                } else if (e.target.classList.contains('edit')) {
-                    const id = e.target.getAttribute('data-id');
-                    const task = getTaskFromLocalStorageById(id);
-                    if (task) {
-                        todoInputNote.value = task.text;
-                        todoDueDateNote.value = task.dueDate;
-                        editingTaskId = id;
-                    }
-                }
-            });
-
             function getTaskFromLocalStorageById(id) {
                 const todos = getTodosFromLocalStorage();
                 return todos.find(todo => todo.id === id);
@@ -545,45 +571,11 @@
                 localStorage.setItem('todos', JSON.stringify(todos));
             }
 
-            function startEditingTask(id) {
-                const task = getTaskFromLocalStorageById(id);
-                if (task) {
-                    todoInputNote.value = task.text;
-                    todoDueDateNote.value = task.dueDate || '';
-                    editingTaskId = id;
-                }
-            }
-
-            // Function to handle editing a task
-            function editTask(id, text, dueDate) {
-                const taskElement = document.getElementById(id);
-                if (taskElement) {
-                    taskElement.querySelector('.task-text span:nth-child(2)').textContent = text;
-                    taskElement.querySelector('.task-date').textContent = dueDate ? `Due: ${dueDate}` : '';
-                }
-            }
-
-            // Event listener for submitting edited task
-            todoFormNote.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const taskText = todoInputNote.value.trim();
-                const dueDate = todoDueDateNote.value;
-                if (editingTaskId) {
-                    updateTaskInLocalStorage(editingTaskId, taskText, dueDate);
-                    editTask(editingTaskId, taskText, dueDate);
-                    editingTaskId = null;
-                } else {
-                    addTodoForNote(e);
-                }
-                todoInputNote.value = '';
-                todoDueDateNote.value = '';
-            });
-
             // Initial load
             showNotesListButton.click();
         });
     </script>
 </body>
 </html>
-
-                
+        
+                    
