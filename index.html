@@ -6,9 +6,8 @@
     <title>Notes and Tasks App</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jkanban/1.2.3/jkanban.min.css">
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jkanban/1.2.3/jkanban.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -28,14 +27,20 @@
             white-space: pre-wrap;
         }
         .kanban-board {
-            margin-top: 20px;
+            display: flex;
+            gap: 20px;
         }
-        .kanban-item {
+        .kanban-column {
+            flex: 1;
+            border: 1px solid #ccc;
             padding: 10px;
-            margin: 5px;
-            background: #fff;
-            border-radius: 3px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border-radius: 4px;
+            min-height: 400px;
+        }
+        .kanban-column h3 {
+            text-align: center;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -96,7 +101,16 @@
             </div>
             <div id="kanban-page" class="hidden">
                 <h2 class="mdl-typography--title">Kanban Board</h2>
-                <div id="kanban-board" class="kanban-board"></div>
+                <div class="kanban-board">
+                    <div class="kanban-column" id="todo-column">
+                        <h3>To Do</h3>
+                        <div id="todo-tasks" class="kanban-tasks"></div>
+                    </div>
+                    <div class="kanban-column" id="high-priority-column">
+                        <h3>High Priority</h3>
+                        <div id="high-priority-tasks" class="kanban-tasks"></div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -107,11 +121,6 @@
         let editingNoteId = null;
         let editingTaskId = null;
         const converter = new showdown.Converter();
-        let kanban;
-
-        document.addEventListener("DOMContentLoaded", function() {
-            showPage('notes');
-        });
 
         function showPage(page) {
             document.getElementById('notes-page').classList.add('hidden');
@@ -337,56 +346,65 @@
         }
 
         function displayKanban() {
-            if (!kanban) {
-                kanban = new jKanban({
-                    element: '#kanban-board',
-                    gutter: '15px',
-                    widthBoard: '250px',
-                    boards: [
-                        {
-                            id: '_todo',
-                            title: 'To Do',
-                            class: 'info, good',
-                            item: tasks.filter(t => t.status === 'todo').map(task => ({
-                                title: `${task.description} - ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}`,
-                                id: task.id
-                            }))
-                        },
-                        {
-                            id: '_highpriority',
-                            title: 'High Priority',
-                            class: 'warning',
-                            item: tasks.filter(t => t.status === 'high-priority').map(task => ({
-                                title: `${task.description} - ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}`,
-                                id: task.id
-                            }))
-                        }
-                    ]
-                });
-            } else {
-                kanban.removeBoard('_todo');
-                kanban.removeBoard('_highpriority');
-                kanban.addBoards([
-                    {
-                        id: '_todo',
-                        title: 'To Do',
-                        class: 'info, good',
-                        item: tasks.filter(t => t.status === 'todo').map(task => ({
-                            title: `${task.description} - ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}`,
-                            id: task.id
-                        }))
-                    },
-                    {
-                        id: '_highpriority',
-                        title: 'High Priority',
-                        class: 'warning',
-                        item: tasks.filter(t => t.status === 'high-priority').map(task => ({
-                            title: `${task.description} - ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}`,
-                            id: task.id
-                        }))
-                    }
-                ]);
-            }
+            const todoTasksDiv = document.getElementById('todo-tasks');
+            const highPriorityTasksDiv = document.getElementById('high-priority-tasks');
+            todoTasksDiv.innerHTML = '';
+            highPriorityTasksDiv.innerHTML = '';
+            tasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.classList.add('mdl-card', 'mdl-shadow--2dp', 'task');
+                taskDiv.dataset.id = task.id;
+                taskDiv.innerHTML = `
+                    <div class="mdl-card__supporting-text">
+                        <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="kanban-checkbox-${task.id}">
+                            <input type="checkbox" id="kanban-checkbox-${task.id}" class="mdl-checkbox__input" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                        </label>
+                        <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
+                        <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                    </div>
+                    <div class="mdl-card__actions mdl-card--border">
+                        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="editTask(${task.id})">
+                            <i class="material-icons">edit</i>
+                        </button>
+                        <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--accent" onclick="deleteTask(${task.id})">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                `;
+                if (task.status === 'todo') {
+                    todoTasksDiv.appendChild(taskDiv);
+                } else if (task.status === 'high-priority') {
+                    highPriorityTasksDiv.appendChild(taskDiv);
+                }
+            });
+            initSortable();
+        }
+
+        function initSortable() {
+            const todoColumn = document.getElementById('todo-tasks');
+            const highPriorityColumn = document.getElementById('high-priority-tasks');
+            Sortable.create(todoColumn, {
+                group: 'tasks',
+                animation: 150,
+                onEnd: function (evt) {
+                    updateTaskStatus(evt.item.dataset.id, 'todo');
+                }
+            });
+            Sortable.create(highPriorityColumn, {
+                group: 'tasks',
+                animation: 150,
+                onEnd: function (evt) {
+                    updateTaskStatus(evt.item.dataset.id, 'high-priority');
+                }
+            });
+        }
+
+        function updateTaskStatus(taskId, status) {
+            tasks = tasks.map(task => task.id === parseInt(taskId) ? { ...task, status } : task);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
+            displayNotes();
+            displayKanban();
         }
 
         // Initial display
