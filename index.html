@@ -387,14 +387,22 @@
                 group: 'tasks',
                 animation: 150,
                 onEnd: function (evt) {
-                    updateTaskStatus(evt.item.dataset.id, 'todo');
+                    if (evt.to === highPriorityColumn) {
+                        updateTaskStatus(evt.item.dataset.id, 'high-priority');
+                    } else {
+                        updateTaskStatus(evt.item.dataset.id, 'todo');
+                    }
                 }
             });
             Sortable.create(highPriorityColumn, {
                 group: 'tasks',
                 animation: 150,
                 onEnd: function (evt) {
-                    updateTaskStatus(evt.item.dataset.id, 'high-priority');
+                    if (evt.to === todoColumn) {
+                        updateTaskStatus(evt.item.dataset.id, 'todo');
+                    } else {
+                        updateTaskStatus(evt.item.dataset.id, 'high-priority');
+                    }
                 }
             });
         }
