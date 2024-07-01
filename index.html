@@ -42,6 +42,14 @@
             text-align: center;
             margin-bottom: 10px;
         }
+        .kanban-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .mdl-card {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -392,6 +400,7 @@
                     } else {
                         updateTaskStatus(evt.item.dataset.id, 'todo');
                     }
+                    persistTaskOrder();
                 }
             });
             Sortable.create(highPriorityColumn, {
@@ -403,6 +412,7 @@
                     } else {
                         updateTaskStatus(evt.item.dataset.id, 'high-priority');
                     }
+                    persistTaskOrder();
                 }
             });
         }
@@ -413,6 +423,29 @@
             displayTasks();
             displayNotes();
             displayKanban();
+        }
+
+        function persistTaskOrder() {
+            const todoTasksDiv = document.getElementById('todo-tasks');
+            const highPriorityTasksDiv = document.getElementById('high-priority-tasks');
+            const newOrder = [];
+            
+            Array.from(todoTasksDiv.children).forEach(taskElement => {
+                const taskId = parseInt(taskElement.dataset.id);
+                const task = tasks.find(t => t.id === taskId);
+                task.status = 'todo';
+                newOrder.push(task);
+            });
+
+            Array.from(highPriorityTasksDiv.children).forEach(taskElement => {
+                const taskId = parseInt(taskElement.dataset.id);
+                const task = tasks.find(t => t.id === taskId);
+                task.status = 'high-priority';
+                newOrder.push(task);
+            });
+
+            tasks = newOrder;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
         // Initial display
