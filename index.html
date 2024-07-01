@@ -109,6 +109,10 @@
         const converter = new showdown.Converter();
         let kanban;
 
+        document.addEventListener("DOMContentLoaded", function() {
+            showPage('notes');
+        });
+
         function showPage(page) {
             document.getElementById('notes-page').classList.add('hidden');
             document.getElementById('tasks-page').classList.add('hidden');
