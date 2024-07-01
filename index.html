@@ -192,7 +192,6 @@
                 if (taskId) {
                     noteTasks.push(parseInt(taskId));
                 } else {
-                    const task = { id: Date.now() + Math.random(), description
                     const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: 'todo' };
                     tasks.push(task);
                     noteTasks.push(task.id);
