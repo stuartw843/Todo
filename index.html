@@ -186,7 +186,8 @@
                     <ul>
                         ${note.tasks.map(taskId => {
                             const task = tasks.find(t => t.id === taskId);
-                            const relatedNoteTitle = task ? `Note: ${note.title}` : '';
+                            if (!task) return '';  // Skip if task is undefined
+                            const relatedNoteTitle = note ? `Note: ${note.title}` : '';
                             return `<li class="task">
                                 <div class="task-header">
                                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
@@ -230,7 +231,7 @@
                 document.getElementById('note-content').value = note.content;
                 note.tasks.forEach(taskId => {
                     const task = tasks.find(t => t.id === taskId);
-                    addNoteTask(task);
+                    if (task) addNoteTask(task);
                 });
                 editingNoteId = note.id;
             } else {
@@ -239,6 +240,7 @@
                 editingNoteId = null;
             }
         }
+
         function hideNoteForm() {
             document.getElementById('note-form').classList.add('hidden');
         }
@@ -312,6 +314,7 @@
             tasks.forEach(task => {
                 const relatedNote = notes.find(note => note.tasks.includes(task.id));
                 const relatedNoteTitle = relatedNote ? `Note: ${relatedNote.title}` : '';
+                if (!task) return;  // Skip if task is undefined
                 const taskDiv = document.createElement('div');
                 taskDiv.classList.add('task-card');
                 taskDiv.dataset.id = task.id;
