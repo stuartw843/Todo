@@ -31,6 +31,10 @@
         .task {
             margin: 5px 0;
             display: flex;
+            flex-direction: column;
+        }
+        .task-header {
+            display: flex;
             align-items: center;
         }
         .task-handle {
@@ -44,7 +48,7 @@
             padding: 10px;
             cursor: pointer;
         }
-        input[type="text"], input[type="date"] {
+        input[type="text"], input[type="date"], select {
             width: 100%;
             box-sizing: border-box;
             padding: 10px;
@@ -57,6 +61,7 @@
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -89,6 +94,11 @@
                 <h3>New Task</h3>
                 <input type="text" id="task-desc" placeholder="Description"><br>
                 <input type="date" id="task-due-date"><br>
+                <select id="task-status">
+                    <option value="Not Started">Not Started</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
                 <button onclick="saveTask()">Save Task</button>
                 <button onclick="hideTaskForm()">Cancel</button>
             </div>
@@ -101,6 +111,7 @@
     <script>
         let notes = JSON.parse(localStorage.getItem('notes')) || [];
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let statuses = JSON.parse(localStorage.getItem('statuses')) || ["Not Started", "In Progress", "Completed"];
         let editingNoteId = null;
         let editingTaskId = null;
         const converter = new showdown.Converter();
@@ -137,16 +148,21 @@
                         ${note.tasks.map(taskId => {
                             const task = tasks.find(t => t.id === taskId);
                             return `<li class="task">
-                                <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
-                                <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                                <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                                <button onclick="editTask(${task.id})">Edit</button>
-                                <button onclick="deleteTask(${task.id})">Delete</button>
+                                <div class="task-header">
+                                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                                    <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
+                                    <button onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
+                                    <button onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                                </div>
+                                <div>
+                                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                                    <span>Status: ${task.status}</span>
+                                </div>
                             </li>`;
                         }).join('')}
                     </ul>
-                    <button onclick="editNote(${note.id})">Edit</button>
-                    <button onclick="deleteNote(${note.id})">Delete</button>
+                    <button onclick="editNote(${note.id})"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteNote(${note.id})"><i class="fas fa-trash"></i></button>
                 `;
                 notesList.appendChild(noteDiv);
             });
@@ -154,6 +170,10 @@
 
         function searchNotes() {
             const searchTerm = document.getElementById('search-input').value;
+            if (!searchTerm) {
+                displayNotes(notes);
+                return;
+            }
             const results = fuse.search(searchTerm);
             const filteredNotes = results.map(result => result.item);
             displayNotes(filteredNotes);
@@ -191,10 +211,10 @@
                 if (taskId) {
                     noteTasks.push(parseInt(taskId));
                 } else {
-                    const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value };
+                    const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: taskElement.querySelector('.task-status').value };
                     tasks.push(task);
                     noteTasks.push(task.id);
-                }
+                    }
             });
             if (editingNoteId) {
                 notes = notes.map(n => n.id === editingNoteId ? { id: editingNoteId, title, content, tasks: noteTasks } : n);
@@ -218,6 +238,9 @@
             taskDiv.innerHTML = `
                 <input type="text" class="task-desc" placeholder="Task description" value="${task ? task.description : ''}">
                 <input type="date" class="task-due-date" value="${task ? task.dueDate : ''}">
+                <select class="task-status">
+                    ${statuses.map(status => `<option value="${status}" ${task && task.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+                </select>
             `;
             noteTasksDiv.appendChild(taskDiv);
         }
@@ -246,12 +269,17 @@
                 taskDiv.dataset.id = task.id;
                 taskDiv.innerHTML = `
                     <div class="task-handle">☰</div>
-                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
-                    <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                    ${relatedNoteTitle}
-                    <button onclick="editTask(${task.id})">Edit</button>
-                    <button onclick="deleteTask(${task.id})">Delete</button>
+                    <div class="task-header">
+                        <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                        <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
+                        <button onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div>
+                        <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                        <span>Status: ${task.status}</span>
+                        ${relatedNoteTitle}
+                    </div>
                 `;
                 tasksList.appendChild(taskDiv);
             });
@@ -270,13 +298,17 @@
 
         function showTaskForm(task) {
             document.getElementById('task-form').classList.remove('hidden');
+            const statusSelect = document.getElementById('task-status');
+            statusSelect.innerHTML = statuses.map(status => `<option value="${status}">${status}</option>`).join('');
             if (task) {
                 document.getElementById('task-desc').value = task.description;
                 document.getElementById('task-due-date').value = task.dueDate;
+                statusSelect.value = task.status;
                 editingTaskId = task.id;
             } else {
                 document.getElementById('task-desc').value = '';
                 document.getElementById('task-due-date').value = '';
+                statusSelect.value = 'Not Started';
                 editingTaskId = null;
             }
         }
@@ -288,10 +320,11 @@
         function saveTask() {
             const description = document.getElementById('task-desc').value;
             const dueDate = document.getElementById('task-due-date').value;
+            const status = document.getElementById('task-status').value;
             if (editingTaskId) {
-                tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate } : t);
+                tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate, status } : t);
             } else {
-                const task = { id: Date.now() + Math.random(), description, isDone: false, dueDate };
+                const task = { id: Date.now() + Math.random(), description, isDone: false, dueDate, status };
                 tasks.push(task);
             }
             localStorage.setItem('tasks', JSON.stringify(tasks));
