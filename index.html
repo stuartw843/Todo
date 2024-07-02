@@ -41,6 +41,16 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .task-title {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .task-details {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
         }
         .task-buttons {
             display: flex;
@@ -67,11 +77,20 @@
         .task-button {
             margin-left: 5px;
             padding: 5px;
+            width: 30px;
         }
         .task-action-buttons {
             display: flex;
             justify-content: space-between;
             margin-top: 5px;
+        }
+        .status {
+            font-weight: bold;
+            color: #007BFF;
+        }
+        .related-note {
+            font-style: italic;
+            color: #555;
         }
         @media (min-width: 600px) {
             .task-action-buttons button {
@@ -170,13 +189,16 @@
                             return `<li class="task">
                                 <div class="task-header">
                                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
-                                    <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                                    <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
-                                    <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                                    <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
+                                    <div class="task-buttons">
+                                        <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
+                                        <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                                    </div>
                                 </div>
-                                <div>
+                                <div class="task-details">
                                     <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                                    <span>Status: ${task.status}</span>
+                                    <span class="status">Status: ${task.status}</span>
+                                    <span class="related-note">${relatedNoteTitle}</span>
                                 </div>
                             </li>`;
                         }).join('')}
@@ -289,21 +311,23 @@
 
             tasks.forEach(task => {
                 const relatedNote = notes.find(note => note.tasks.includes(task.id));
-                const relatedNoteTitle = relatedNote ? ` (Note: ${relatedNote.title})` : '';
+                const relatedNoteTitle = relatedNote ? `Note: ${relatedNote.title}` : '';
                 const taskDiv = document.createElement('div');
                 taskDiv.classList.add('task-card');
                 taskDiv.dataset.id = task.id;
                 taskDiv.innerHTML = `
                     <div class="task-header">
                         <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
-                        <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                        <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
-                        <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                        <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
+                        <div class="task-buttons">
+                            <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
+                            <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
-                    <div>
+                    <div class="task-details">
                         <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                        <span>Status: ${task.status}</span>
-                        ${relatedNoteTitle}
+                        <span class="status">Status: ${task.status}</span>
+                        <span class="related-note">${relatedNoteTitle}</span>
                     </div>
                     <div class="task-action-buttons">
                         <button class="task-button" onclick="changeTaskStatus(${task.id}, 'High Impact')">Move to High Impact</button>
