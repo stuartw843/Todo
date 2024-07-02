@@ -186,6 +186,7 @@
                     <ul>
                         ${note.tasks.map(taskId => {
                             const task = tasks.find(t => t.id === taskId);
+                            const relatedNoteTitle = task ? `Note: ${note.title}` : '';
                             return `<li class="task">
                                 <div class="task-header">
                                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
@@ -238,7 +239,6 @@
                 editingNoteId = null;
             }
         }
-
         function hideNoteForm() {
             document.getElementById('note-form').classList.add('hidden');
         }
