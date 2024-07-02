@@ -36,6 +36,7 @@
         .task-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
         }
         .task-handle {
             cursor: move;
@@ -59,8 +60,11 @@
             margin-bottom: 10px;
             width: 100%;
         }
+        .task-button {
+            margin-left: 5px;
+            padding: 5px;
+        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -87,17 +91,20 @@
             </div>
         </div>
         <div id="tasks-page" class="hidden">
-            <h2>Tasks</h2>
-            <div id="tasks-list" class="sortable-list"></div>
+            <h2>High Impact Tasks</h2>
+            <div id="high-impact-tasks" class="sortable-list"></div>
+            <h2>Todo Tasks</h2>
+            <div id="todo-tasks" class="sortable-list"></div>
+            <h2>Done Tasks</h2>
+            <div id="done-tasks" class="sortable-list"></div>
             <button onclick="showTaskForm()">Add Task</button>
             <div id="task-form" class="hidden">
                 <h3>New Task</h3>
                 <input type="text" id="task-desc" placeholder="Description"><br>
                 <input type="date" id="task-due-date"><br>
                 <select id="task-status">
-                    <option value="Not Started">Not Started</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
+                    <option value="High Impact">High Impact</option>
+                    <option value="Todo">Todo</option>
                 </select>
                 <button onclick="saveTask()">Save Task</button>
                 <button onclick="hideTaskForm()">Cancel</button>
@@ -106,12 +113,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
     <script>
         let notes = JSON.parse(localStorage.getItem('notes')) || [];
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-        let statuses = JSON.parse(localStorage.getItem('statuses')) || ["Not Started", "In Progress", "Completed"];
+        const statuses = ["High Impact", "Todo"];
         let editingNoteId = null;
         let editingTaskId = null;
         const converter = new showdown.Converter();
@@ -151,8 +157,8 @@
                                 <div class="task-header">
                                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                                     <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                                    <button onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
-                                    <button onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                                    <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
+                                    <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
                                 </div>
                                 <div>
                                     <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
@@ -161,8 +167,8 @@
                             </li>`;
                         }).join('')}
                     </ul>
-                    <button onclick="editNote(${note.id})"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteNote(${note.id})"><i class="fas fa-trash"></i></button>
+                    <button class="task-button" onclick="editNote(${note.id})"><i class="fas fa-edit"></i></button>
+                    <button class="task-button" onclick="deleteNote(${note.id})"><i class="fas fa-trash"></i></button>
                 `;
                 notesList.appendChild(noteDiv);
             });
@@ -211,10 +217,10 @@
                 if (taskId) {
                     noteTasks.push(parseInt(taskId));
                 } else {
-                    const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: taskElement.querySelector('.task-status').value };
+                    const task = { id: Date.now() + Math.random(),                     description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: taskElement.querySelector('.task-status').value };
                     tasks.push(task);
                     noteTasks.push(task.id);
-                    }
+                }
             });
             if (editingNoteId) {
                 notes = notes.map(n => n.id === editingNoteId ? { id: editingNoteId, title, content, tasks: noteTasks } : n);
@@ -259,8 +265,14 @@
         }
 
         function displayTasks() {
-            const tasksList = document.getElementById('tasks-list');
-            tasksList.innerHTML = '';
+            const highImpactTasksList = document.getElementById('high-impact-tasks');
+            const todoTasksList = document.getElementById('todo-tasks');
+            const doneTasksList = document.getElementById('done-tasks');
+
+            highImpactTasksList.innerHTML = '';
+            todoTasksList.innerHTML = '';
+            doneTasksList.innerHTML = '';
+
             tasks.forEach(task => {
                 const relatedNote = notes.find(note => note.tasks.includes(task.id));
                 const relatedNoteTitle = relatedNote ? ` (Note: ${relatedNote.title})` : '';
@@ -268,32 +280,37 @@
                 taskDiv.classList.add('task');
                 taskDiv.dataset.id = task.id;
                 taskDiv.innerHTML = `
-                    <div class="task-handle">☰</div>
                     <div class="task-header">
                         <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                         <span class="${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                        <button onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                        <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
+                        <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
                     </div>
                     <div>
                         <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
                         <span>Status: ${task.status}</span>
                         ${relatedNoteTitle}
                     </div>
+                    <div>
+                        <button class="task-button" onclick="changeTaskStatus(${task.id}, 'High Impact')">Move to High Impact</button>
+                        <button class="task-button" onclick="changeTaskStatus(${task.id}, 'Todo')">Move to Todo</button>
+                    </div>
                 `;
-                tasksList.appendChild(taskDiv);
-            });
 
-            // Initialize Dragula for drag-and-drop sorting
-            dragula([document.getElementById('tasks-list')]).on('drop', function (el) {
-                const newOrder = Array.from(document.getElementById('tasks-list').children).map(child => {
-                    const taskId = parseInt(child.dataset.id);
-                    return tasks.find(task => task.id === taskId);
-                });
-                tasks = newOrder;
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                displayTasks();
+                if (task.isDone) {
+                    doneTasksList.appendChild(taskDiv);
+                } else if (task.status === 'High Impact') {
+                    highImpactTasksList.appendChild(taskDiv);
+                } else if (task.status === 'Todo') {
+                    todoTasksList.appendChild(taskDiv);
+                }
             });
+        }
+
+        function changeTaskStatus(taskId, newStatus) {
+            tasks = tasks.map(task => task.id === taskId ? { ...task, status: newStatus } : task);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
         }
 
         function showTaskForm(task) {
@@ -308,7 +325,7 @@
             } else {
                 document.getElementById('task-desc').value = '';
                 document.getElementById('task-due-date').value = '';
-                statusSelect.value = 'Not Started';
+                statusSelect.value = 'Todo';
                 editingTaskId = null;
             }
         }
