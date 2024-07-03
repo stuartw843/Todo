@@ -92,6 +92,29 @@
             font-style: italic;
             color: #555;
         }
+        .settings-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+        }
+        .sync-status {
+            position: fixed;
+            top: 20px;
+            right: 60px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .sync-status.online {
+            background-color: green;
+        }
+        .sync-status.offline {
+            background-color: red;
+        }
+        .sync-status.syncing {
+            background-color: yellow;
+        }
         @media (min-width: 600px) {
             .task-action-buttons button {
                 width: 48%;
@@ -99,6 +122,9 @@
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
@@ -143,6 +169,19 @@
                 <button onclick="hideTaskForm()">Cancel</button>
             </div>
         </div>
+        <div class="settings-icon" onclick="showSettings()">
+            <i class="fas fa-cog"></i>
+        </div>
+        <div id="settings-page" class="hidden">
+            <h2>Settings</h2>
+            <input type="text" id="firebase-api-key" placeholder="Firebase API Key"><br>
+            <input type="text" id="firebase-auth-domain" placeholder="Firebase Auth Domain"><br>
+            <input type="text" id="firebase-database-url" placeholder="Firebase Database URL"><br>
+            <input type="text" id="firebase-project-id" placeholder="Firebase Project ID"><br>
+            <button onclick="saveSettings()">Save Settings</button>
+            <button onclick="hideSettings()">Cancel</button>
+        </div>
+        <div class="sync-status offline" id="sync-status"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
@@ -166,6 +205,7 @@
         function showPage(page) {
             document.getElementById('notes-page').classList.add('hidden');
             document.getElementById('tasks-page').classList.add('hidden');
+            document.getElementById('settings-page').classList.add('hidden');
             document.getElementById(page + '-page').classList.remove('hidden');
             if (page === 'notes') {
                 displayNotes();
@@ -268,6 +308,7 @@
             }
             localStorage.setItem('notes', JSON.stringify(notes));
             localStorage.setItem('tasks', JSON.stringify(tasks));
+            syncDataWithFirebase();
             initFuse();
             hideNoteForm();
             displayNotes();
@@ -297,6 +338,7 @@
         function deleteNote(id) {
             notes = notes.filter(n => n.id !== id);
             localStorage.setItem('notes', JSON.stringify(notes));
+            syncDataWithFirebase();
             initFuse();
             displayNotes();
             displayTasks();
@@ -351,6 +393,7 @@
         function changeTaskStatus(taskId, newStatus) {
             tasks = tasks.map(task => task.id === taskId ? { ...task, status: newStatus } : task);
             localStorage.setItem('tasks', JSON.stringify(tasks));
+            syncDataWithFirebase();
             displayTasks();
         }
 
@@ -386,6 +429,7 @@
                 tasks.push(task);
             }
             localStorage.setItem('tasks', JSON.stringify(tasks));
+            syncDataWithFirebase();
             hideTaskForm();
             displayTasks();
             displayNotes();
@@ -395,6 +439,7 @@
             const task = tasks.find(t => t.id === id);
             task.isDone = !task.isDone;
             localStorage.setItem('tasks', JSON.stringify(tasks));
+            syncDataWithFirebase();
             displayTasks();
             displayNotes();
         }
@@ -412,6 +457,7 @@
             });
             localStorage.setItem('tasks', JSON.stringify(tasks));
             localStorage.setItem('notes', JSON.stringify(notes));
+            syncDataWithFirebase();
             displayTasks();
             displayNotes();
         }
@@ -422,14 +468,137 @@
                 tasks = [];
                 localStorage.setItem('notes', JSON.stringify(notes));
                 localStorage.setItem('tasks', JSON.stringify(tasks));
+                syncDataWithFirebase();
                 displayNotes();
                 displayTasks();
             }
         }
 
+        function showSettings() {
+            document.getElementById('settings-page').classList.remove('hidden');
+            document.getElementById('firebase-api-key').value = localStorage.getItem('firebaseApiKey') || '';
+            document.getElementById('firebase-auth-domain').value = localStorage.getItem('firebaseAuthDomain') || '';
+            document.getElementById('firebase-database-url').value = localStorage.getItem('firebaseDatabaseUrl') || '';
+            document.getElementById('firebase-project-id').value = localStorage.getItem('firebaseProjectId') || '';
+        }
+
+        function hideSettings() {
+            document.getElementById('settings-page').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            localStorage.setItem('firebaseApiKey', document.getElementById('firebase-api-key').value);
+            localStorage.setItem('firebaseAuthDomain', document.getElementById('firebase-auth-domain').value);
+            localStorage.setItem('firebaseDatabaseUrl', document.getElementById('firebase-database-url').value);
+            localStorage.setItem('firebaseProjectId', document.getElementById('firebase-project-id').value);
+            initFirebase();
+            hideSettings();
+        }
+
+        function initFirebase() {
+            const firebaseConfig = {
+                apiKey: localStorage.getItem('firebaseApiKey'),
+                authDomain: localStorage.getItem('firebaseAuthDomain'),
+                databaseURL: localStorage.getItem('firebaseDatabaseUrl'),
+                projectId: localStorage.getItem('firebaseProjectId')
+            };
+
+            if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.databaseURL || !firebaseConfig.projectId) {
+                console.log('Firebase configuration is not complete');
+                return;
+            }
+
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            } else {
+                firebase.app();
+            }
+            syncDataWithFirebase();
+        }
+
+        function updateSyncStatus(status) {
+            const syncStatus = document.getElementById('sync-status');
+            syncStatus.classList.remove('online', 'offline', 'syncing');
+            syncStatus.classList.add(status);
+        }
+
+        function syncDataWithFirebase() {
+            if (!firebase.apps.length) {
+                console.log('Firebase is not initialized');
+                return;
+            }
+            
+            updateSyncStatus('syncing');
+
+            const userId = 'user123'; // Replace with your logic to get the authenticated user ID
+            const database = firebase.database();
+
+            database.ref(`/users/${userId}/notes`).set(notes, (error) => {
+                if (error) {
+                    console.error('Data could not be saved.', error);
+                    updateSyncStatus('offline');
+                } else {
+                    console.log('Notes data saved successfully.');
+                    updateSyncStatus('online');
+                }
+            });
+
+            database.ref(`/users/${userId}/tasks`).set(tasks, (error) => {
+                if (error) {
+                    console.error('Data could not be saved.', error);
+                    updateSyncStatus('offline');
+                } else {
+                    console.log('Tasks data saved successfully.');
+                    updateSyncStatus('online');
+                }
+            });
+        }
+
+        function loadDataFromFirebase() {
+            if (!firebase.apps.length) {
+                console.log('Firebase is not initialized');
+                return;
+            }
+            
+            const userId = 'user123'; // Replace with your logic to get the authenticated user ID
+            const database = firebase.database();
+
+            database.ref(`/users/${userId}/notes`).once('value', snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    notes = data;
+                    localStorage.setItem('notes', JSON.stringify(notes));
+                    displayNotes();
+                }
+            });
+
+            database.ref(`/users/${userId}/tasks`).once('value', snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    tasks = data;
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    displayTasks();
+                }
+            });
+        }
+
+        window.addEventListener('offline', () => {
+            console.log('You are offline');
+            updateSyncStatus('offline');
+        });
+
+        window.addEventListener('online', () => {
+            console.log('You are online');
+            updateSyncStatus('syncing');
+            syncDataWithFirebase();
+        });
+
         // Initial setup
         showPage('notes');
         initFuse();
+        initFirebase();
+        loadDataFromFirebase();
     </script>
 </body>
-</html>
+</html>                                   
+                                        
