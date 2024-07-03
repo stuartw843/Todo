@@ -514,6 +514,7 @@
                 firebase.app();
             }
             syncDataWithFirebase();
+            listenForChanges();
         }
 
         function updateSyncStatus(status) {
@@ -582,6 +583,29 @@
             });
         }
 
+        function listenForChanges() {
+            const userId = 'user123'; // Replace with your logic to get the authenticated user ID
+            const database = firebase.database();
+
+            database.ref(`/users/${userId}/notes`).on('value', snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    notes = data;
+                    localStorage.setItem('notes', JSON.stringify(notes));
+                    displayNotes();
+                }
+            });
+
+            database.ref(`/users/${userId}/tasks`).on('value', snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    tasks = data;
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    displayTasks();
+                }
+            });
+        }
+
         window.addEventListener('offline', () => {
             console.log('You are offline');
             updateSyncStatus('offline');
@@ -598,6 +622,8 @@
         initFuse();
         initFirebase();
         loadDataFromFirebase();
+        listenForChanges();
     </script>
 </body>
 </html>
+
