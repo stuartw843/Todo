@@ -232,7 +232,7 @@
                                 <div class="task-header">
                                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                                     <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                                          <div class="task-buttons">
+                                    <div class="task-buttons">
                                         <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
                                         <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
                                     </div>
@@ -564,6 +564,8 @@
             const userId = 'user123'; // Replace with your logic to get the authenticated user ID
             const database = firebase.database();
 
+            updateSyncStatus('syncing');
+
             database.ref(`/users/${userId}/notes`).once('value', snapshot => {
                 const data = snapshot.val();
                 if (data) {
@@ -580,6 +582,7 @@
                     localStorage.setItem('tasks', JSON.stringify(tasks));
                     displayTasks();
                 }
+                updateSyncStatus('online');
             });
         }
 
@@ -625,3 +628,6 @@
     </script>
 </body>
 </html>
+
+            
+                                    
