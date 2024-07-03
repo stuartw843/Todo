@@ -513,7 +513,7 @@
             } else {
                 firebase.app();
             }
-            syncDataWithFirebase();
+            loadDataFromFirebase();
             listenForChanges();
         }
 
@@ -564,26 +564,45 @@
             const userId = 'user123'; // Replace with your logic to get the authenticated user ID
             const database = firebase.database();
 
-            updateSyncStatus('syncing');
-
             database.ref(`/users/${userId}/notes`).once('value', snapshot => {
-                const data = snapshot.val();
-                if (data) {
-                    notes = data;
+                const serverNotes = snapshot.val();
+                if (serverNotes) {
+                    notes = mergeNotes(serverNotes, notes);
                     localStorage.setItem('notes', JSON.stringify(notes));
                     displayNotes();
                 }
             });
 
             database.ref(`/users/${userId}/tasks`).once('value', snapshot => {
-                const data = snapshot.val();
-                if (data) {
-                    tasks = data;
+                const serverTasks = snapshot.val();
+                if (serverTasks) {
+                    tasks = mergeTasks(serverTasks, tasks);
                     localStorage.setItem('tasks', JSON.stringify(tasks));
                     displayTasks();
                 }
-                updateSyncStatus('online');
             });
+        }
+
+        function mergeNotes(serverNotes, localNotes) {
+            const noteMap = {};
+            serverNotes.forEach(note => noteMap[note.id] = note);
+            localNotes.forEach(note => {
+                if (!noteMap[note.id]) {
+                    noteMap[note.id] = note;
+                }
+            });
+            return Object.values(noteMap);
+        }
+
+        function mergeTasks(serverTasks, localTasks) {
+            const taskMap = {};
+            serverTasks.forEach(task => taskMap[task.id] = task);
+            localTasks.forEach(task => {
+                if (!taskMap[task.id]) {
+                    taskMap[task.id] = task;
+                }
+            });
+            return Object.values(taskMap);
         }
 
         function listenForChanges() {
@@ -591,18 +610,18 @@
             const database = firebase.database();
 
             database.ref(`/users/${userId}/notes`).on('value', snapshot => {
-                const data = snapshot.val();
-                if (data) {
-                    notes = data;
+                const serverNotes = snapshot.val();
+                if (serverNotes) {
+                    notes = mergeNotes(serverNotes, notes);
                     localStorage.setItem('notes', JSON.stringify(notes));
                     displayNotes();
                 }
             });
 
             database.ref(`/users/${userId}/tasks`).on('value', snapshot => {
-                const data = snapshot.val();
-                if (data) {
-                    tasks = data;
+                const serverTasks = snapshot.val();
+                if (serverTasks) {
+                    tasks = mergeTasks(serverTasks, tasks);
                     localStorage.setItem('tasks', JSON.stringify(tasks));
                     displayTasks();
                 }
@@ -624,10 +643,8 @@
         showPage('notes');
         initFuse();
         initFirebase();
-        loadDataFromFirebase();
     </script>
 </body>
 </html>
 
             
-                                    
