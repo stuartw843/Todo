@@ -232,7 +232,7 @@
                                 <div class="task-header">
                                     <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
                                     <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                                    <div class="task-buttons">
+                                          <div class="task-buttons">
                                         <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
                                         <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
                                     </div>
@@ -622,8 +622,6 @@
         initFuse();
         initFirebase();
         loadDataFromFirebase();
-        listenForChanges();
     </script>
 </body>
 </html>
-
