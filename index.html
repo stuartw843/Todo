@@ -232,11 +232,11 @@
                             const relatedNoteTitle = note ? `Note: ${note.title}` : '';
                             return `<li class="task">
                                 <div class="task-header">
-                                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                                    <input type="checkbox" ${task.isDone ? 'checked'  : ''} onclick="toggleTaskDone('${task.id}')">
                                     <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                                     <div class="task-buttons">
-                                        <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
-                                        <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                                        <button class="task-button" onclick="editTask('${task.id}')"><i class="fas fa-edit"></i></button>
+                                        <button class="task-button" onclick="deleteTask('${task.id}')"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </div>
                                 <div class="task-details">
@@ -247,8 +247,8 @@
                             </li>`;
                         }).join('')}
                     </ul>
-                    <button class="task-button" onclick="editNote(${note.id})"><i class="fas fa-edit"></i></button>
-                    <button class="task-button" onclick="deleteNote(${note.id})"><i class="fas fa-trash"></i></button>
+                    <button class="task-button" onclick="editNote('${note.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="task-button" onclick="deleteNote('${note.id}')"><i class="fas fa-trash"></i></button>
                 `;
                 notesList.appendChild(noteDiv);
             });
@@ -295,7 +295,7 @@
             taskElements.forEach(taskElement => {
                 const taskId = taskElement.dataset.id;
                 if (taskId) {
-                    noteTasks.push(parseInt(taskId));
+                    noteTasks.push(taskId);
                 } else {
                     const task = { id: uuid.v4(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: taskElement.querySelector('.task-status').value, updatedAt: new Date().toISOString(), source: 'local' };
                     tasks.push(task);
@@ -370,11 +370,11 @@
                 taskDiv.dataset.id = task.id;
                 taskDiv.innerHTML = `
                     <div class="task-header">
-                        <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone(${task.id})">
+                        <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone('${task.id}')">
                         <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="editTask(${task.id})"><i class="fas fa-edit"></i></button>
-                            <button class="task-button" onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                            <button class="task-button" onclick="editTask('${task.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="task-button" onclick="deleteTask('${task.id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                     <div class="task-details">
@@ -383,8 +383,8 @@
                         <span class="related-note">${relatedNoteTitle}</span>
                     </div>
                     <div class="task-action-buttons">
-                        <button class="task-button" onclick="changeTaskStatus(${task.id}, 'High Impact')">Move to High Impact</button>
-                        <button class="task-button" onclick="changeTaskStatus(${task.id}, 'Todo')">Move to Todo</button>
+                        <button class="task-button" onclick="changeTaskStatus('${task.id}', 'High Impact')">Move to High Impact</button>
+                        <button class="task-button" onclick="changeTaskStatus('${task.id}', 'Todo')">Move to Todo</button>
                     </div>
                 `;
 
@@ -587,9 +587,9 @@
             database.ref(`/users/${userId}`).once('value', snapshot => {
                 const serverData = snapshot.val();
                 if (serverData) {
-                    notes = mergeItems(serverData.notes, notes);
-                    tasks = mergeItems(serverData.tasks, tasks);
-                    deletedItems = mergeItems(serverData.deletedItems, deletedItems);
+                    notes = mergeItems(serverData.notes || [], notes);
+                    tasks = mergeItems(serverData.tasks || [], tasks);
+                    deletedItems = mergeItems(serverData.deletedItems || [], deletedItems);
                     localStorage.setItem('notes', JSON.stringify(notes));
                     localStorage.setItem('tasks', JSON.stringify(tasks));
                     localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
@@ -617,9 +617,9 @@
             database.ref(`/users/${userId}`).on('value', snapshot => {
                 const serverData = snapshot.val();
                 if (serverData) {
-                    notes = mergeItems(serverData.notes, notes);
-                    tasks = mergeItems(serverData.tasks, tasks);
-                    deletedItems = mergeItems(serverData.deletedItems, deletedItems);
+                    notes = mergeItems(serverData.notes || [], notes);
+                    tasks = mergeItems(serverData.tasks || [], tasks);
+                    deletedItems = mergeItems(serverData.deletedItems || [], deletedItems);
                     localStorage.setItem('notes', JSON.stringify(notes));
                     localStorage.setItem('tasks', JSON.stringify(tasks));
                     localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
