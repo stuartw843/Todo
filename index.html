@@ -125,6 +125,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuid.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -189,6 +190,7 @@
     <script>
         let notes = JSON.parse(localStorage.getItem('notes')) || [];
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let deletedItems = JSON.parse(localStorage.getItem('deletedItems')) || [];
         const statuses = ["High Impact", "Todo"];
         let editingNoteId = null;
         let editingTaskId = null;
@@ -295,15 +297,16 @@
                 if (taskId) {
                     noteTasks.push(parseInt(taskId));
                 } else {
-                    const task = { id: Date.now() + Math.random(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: taskElement.querySelector('.task-status').value };
+                    const task = { id: uuid.v4(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: taskElement.querySelector('.task-status').value, updatedAt: new Date().toISOString(), source: 'local' };
                     tasks.push(task);
                     noteTasks.push(task.id);
                 }
             });
+            const updatedAt = new Date().toISOString();
             if (editingNoteId) {
-                notes = notes.map(n => n.id === editingNoteId ? { id: editingNoteId, title, content, tasks: noteTasks } : n);
+                notes = notes.map(n => n.id === editingNoteId ? { ...n, title, content, tasks: noteTasks, updatedAt, source: 'local' } : n);
             } else {
-                const note = { id: Date.now(), title, content, tasks: noteTasks };
+                const note = { id: uuid.v4(), title, content, tasks: noteTasks, updatedAt, source: 'local' };
                 notes.push(note);
             }
             localStorage.setItem('notes', JSON.stringify(notes));
@@ -336,12 +339,17 @@
         }
 
         function deleteNote(id) {
-            notes = notes.filter(n => n.id !== id);
-            localStorage.setItem('notes', JSON.stringify(notes));
-            syncDataWithFirebase();
-            initFuse();
-            displayNotes();
-            displayTasks();
+            const note = notes.find(n => n.id === id);
+            if (note) {
+                deletedItems.push({ id: note.id, type: 'note', updatedAt: new Date().toISOString() });
+                notes = notes.filter(n => n.id !== id);
+                localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
+                localStorage.setItem('notes', JSON.stringify(notes));
+                syncDataWithFirebase();
+                initFuse();
+                displayNotes();
+                displayTasks();
+            }
         }
 
         function displayTasks() {
@@ -391,10 +399,15 @@
         }
 
         function changeTaskStatus(taskId, newStatus) {
-            tasks = tasks.map(task => task.id === taskId ? { ...task, status: newStatus } : task);
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            syncDataWithFirebase();
-            displayTasks();
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.status = newStatus;
+                task.updatedAt = new Date().toISOString();
+                task.source = 'local';
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                syncDataWithFirebase();
+                displayTasks();
+            }
         }
 
         function showTaskForm(task) {
@@ -422,10 +435,11 @@
             const description = document.getElementById('task-desc').value;
             const dueDate = document.getElementById('task-due-date').value;
             const status = document.getElementById('task-status').value;
+            const updatedAt = new Date().toISOString();
             if (editingTaskId) {
-                tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate, status } : t);
+                tasks = tasks.map(t => t.id === editingTaskId ? { ...t, description, dueDate, status, updatedAt, source: 'local' } : t);
             } else {
-                const task = { id: Date.now() + Math.random(), description, isDone: false, dueDate, status };
+                const task = { id: uuid.v4(), description, isDone: false, dueDate, status, updatedAt, source: 'local' };
                 tasks.push(task);
             }
             localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -438,6 +452,8 @@
         function toggleTaskDone(id) {
             const task = tasks.find(t => t.id === id);
             task.isDone = !task.isDone;
+            task.updatedAt = new Date().toISOString();
+            task.source = 'local';
             localStorage.setItem('tasks', JSON.stringify(tasks));
             syncDataWithFirebase();
             displayTasks();
@@ -450,22 +466,30 @@
         }
 
         function deleteTask(id) {
-            tasks = tasks.filter(t => t.id !== id);
-            notes = notes.map(note => {
-                note.tasks = note.tasks.filter(taskId => taskId !== id);
-                return note;
-            });
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            localStorage.setItem('notes', JSON.stringify(notes));
-            syncDataWithFirebase();
-            displayTasks();
-            displayNotes();
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                deletedItems.push({ id: task.id, type: 'task', updatedAt: new Date().toISOString() });
+                tasks = tasks.filter(t => t.id !== id);
+                notes = notes.map(note => {
+                    note.tasks = note.tasks.filter(taskId => taskId !== id);
+                    return note;
+                });
+                localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                localStorage.setItem('notes', JSON.stringify(notes));
+                syncDataWithFirebase();
+                displayTasks();
+                displayNotes();
+            }
         }
 
         function deleteAllNotesAndTasks() {
             if (confirm("Are you sure you want to delete all notes and tasks? This action cannot be undone.")) {
+                notes.forEach(note => deletedItems.push({ id: note.id, type: 'note', updatedAt: new Date().toISOString() }));
+                tasks.forEach(task => deletedItems.push({ id: task.id, type: 'task', updatedAt: new Date().toISOString() }));
                 notes = [];
                 tasks = [];
+                localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
                 localStorage.setItem('notes', JSON.stringify(notes));
                 localStorage.setItem('tasks', JSON.stringify(tasks));
                 syncDataWithFirebase();
@@ -528,28 +552,24 @@
                 console.log('Firebase is not initialized');
                 return;
             }
-            
+
             updateSyncStatus('syncing');
 
             const userId = 'user123'; // Replace with your logic to get the authenticated user ID
             const database = firebase.database();
 
-            database.ref(`/users/${userId}/notes`).set(notes, (error) => {
-                if (error) {
-                    console.error('Data could not be saved.', error);
-                    updateSyncStatus('offline');
-                } else {
-                    console.log('Notes data saved successfully.');
-                    updateSyncStatus('online');
-                }
-            });
+            const dataToSync = {
+                notes,
+                tasks,
+                deletedItems
+            };
 
-            database.ref(`/users/${userId}/tasks`).set(tasks, (error) => {
+            database.ref(`/users/${userId}`).set(dataToSync, (error) => {
                 if (error) {
                     console.error('Data could not be saved.', error);
                     updateSyncStatus('offline');
                 } else {
-                    console.log('Tasks data saved successfully.');
+                    console.log('Data saved successfully.');
                     updateSyncStatus('online');
                 }
             });
@@ -560,69 +580,50 @@
                 console.log('Firebase is not initialized');
                 return;
             }
-            
+
             const userId = 'user123'; // Replace with your logic to get the authenticated user ID
             const database = firebase.database();
 
-            database.ref(`/users/${userId}/notes`).once('value', snapshot => {
-                const serverNotes = snapshot.val();
-                if (serverNotes) {
-                    notes = mergeNotes(serverNotes, notes);
+            database.ref(`/users/${userId}`).once('value', snapshot => {
+                const serverData = snapshot.val();
+                if (serverData) {
+                    notes = mergeItems(serverData.notes, notes);
+                    tasks = mergeItems(serverData.tasks, tasks);
+                    deletedItems = mergeItems(serverData.deletedItems, deletedItems);
                     localStorage.setItem('notes', JSON.stringify(notes));
-                    displayNotes();
-                }
-            });
-
-            database.ref(`/users/${userId}/tasks`).once('value', snapshot => {
-                const serverTasks = snapshot.val();
-                if (serverTasks) {
-                    tasks = mergeTasks(serverTasks, tasks);
                     localStorage.setItem('tasks', JSON.stringify(tasks));
+                    localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
+                    displayNotes();
                     displayTasks();
                 }
             });
         }
 
-        function mergeNotes(serverNotes, localNotes) {
-            const noteMap = {};
-            serverNotes.forEach(note => noteMap[note.id] = note);
-            localNotes.forEach(note => {
-                if (!noteMap[note.id]) {
-                    noteMap[note.id] = note;
+        function mergeItems(serverItems, localItems) {
+            const itemMap = {};
+            serverItems.forEach(item => itemMap[item.id] = item);
+            localItems.forEach(item => {
+                if (!itemMap[item.id] || new Date(item.updatedAt) > new Date(itemMap[item.id].updatedAt)) {
+                    itemMap[item.id] = item;
                 }
             });
-            return Object.values(noteMap);
-        }
-
-        function mergeTasks(serverTasks, localTasks) {
-            const taskMap = {};
-            serverTasks.forEach(task => taskMap[task.id] = task);
-            localTasks.forEach(task => {
-                if (!taskMap[task.id]) {
-                    taskMap[task.id] = task;
-                }
-            });
-            return Object.values(taskMap);
+            return Object.values(itemMap);
         }
 
         function listenForChanges() {
             const userId = 'user123'; // Replace with your logic to get the authenticated user ID
             const database = firebase.database();
 
-            database.ref(`/users/${userId}/notes`).on('value', snapshot => {
-                const serverNotes = snapshot.val();
-                if (serverNotes) {
-                    notes = mergeNotes(serverNotes, notes);
+            database.ref(`/users/${userId}`).on('value', snapshot => {
+                const serverData = snapshot.val();
+                if (serverData) {
+                    notes = mergeItems(serverData.notes, notes);
+                    tasks = mergeItems(serverData.tasks, tasks);
+                    deletedItems = mergeItems(serverData.deletedItems, deletedItems);
                     localStorage.setItem('notes', JSON.stringify(notes));
-                    displayNotes();
-                }
-            });
-
-            database.ref(`/users/${userId}/tasks`).on('value', snapshot => {
-                const serverTasks = snapshot.val();
-                if (serverTasks) {
-                    tasks = mergeTasks(serverTasks, tasks);
                     localStorage.setItem('tasks', JSON.stringify(tasks));
+                    localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
+                    displayNotes();
                     displayTasks();
                 }
             });
@@ -646,5 +647,3 @@
     </script>
 </body>
 </html>
-
-            
