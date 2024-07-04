@@ -575,14 +575,20 @@
                 loadLocalData();
             }).on('paused', (err) => {
                 console.log('Replication paused (e.g. replication up to date, user went offline)', err);
+                if (!err) {
+                    updateSyncStatus('online');
+                }
             }).on('active', () => {
                 console.log('Replication resumed (e.g. new changes replicating, user went back online)');
+                updateSyncStatus('syncing');
             }).on('denied', (err) => {
                 console.error('Replication denied', err);
+                updateSyncStatus('offline');
             }).on('complete', (info) => {
                 console.log('Replication complete', info);
             }).on('error', (err) => {
                 console.error('Replication error', err);
+                updateSyncStatus('offline');
             });
         }
 
