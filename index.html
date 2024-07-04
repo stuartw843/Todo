@@ -291,17 +291,26 @@
             const content = document.getElementById('note-content').value;
             const taskElements = document.querySelectorAll('#note-tasks .task');
             const noteTasks = [];
-            taskElements.forEach(taskElement => {
+            for (const taskElement of taskElements) {
                 const taskId = taskElement.dataset.id;
                 if (taskId) {
                     noteTasks.push(taskId);
                 } else {
-                    const task = { _id: uuid.v4(), description: taskElement.querySelector('.task-desc').value, isDone: false, dueDate: taskElement.querySelector('.task-due-date').value, status: taskElement.querySelector('.task-status').value, updatedAt: new Date().toISOString(), source: 'local', type: 'task' };
+                    const task = {
+                        _id: uuid.v4(),
+                        description: taskElement.querySelector('.task-desc').value,
+                        isDone: false,
+                        dueDate: taskElement.querySelector('.task-due-date').value,
+                        status: taskElement.querySelector('.task-status').value,
+                        updatedAt: new Date().toISOString(),
+                        source: 'local',
+                        type: 'task'
+                    };
                     tasks.push(task);
                     noteTasks.push(task._id);
-                    db.put(task);
+                    await db.put(task);
                 }
-            });
+            }
             const updatedAt = new Date().toISOString();
             if (editingNoteId) {
                 const note = notes.find(n => n._id === editingNoteId);
@@ -312,7 +321,15 @@
                 note.source = 'local';
                 await db.put(note);
             } else {
-                const note = { _id: uuid.v4(), title, content, tasks: noteTasks, updatedAt, source: 'local', type: 'note' };
+                const note = {
+                    _id: uuid.v4(),
+                    title,
+                    content,
+                    tasks: noteTasks,
+                    updatedAt,
+                    source: 'local',
+                    type: 'note'
+                };
                 notes.push(note);
                 await db.put(note);
             }
@@ -491,16 +508,16 @@
 
         async function deleteAllNotesAndTasks() {
             if (confirm("Are you sure you want to delete all notes and tasks? This action cannot be undone.")) {
-                notes.forEach(async note => {
+                for (const note of notes) {
                     deletedItems.push({ _id: note._id, type: 'note', updatedAt: new Date().toISOString() });
                     await db.remove(note);
                     await db.put({ _id: note._id, _deleted: true });
-                });
-                tasks.forEach(async task => {
+                }
+                for (const task of tasks) {
                     deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
                     await db.remove(task);
                     await db.put({ _id: task._id, _deleted: true });
-                });
+                }
                 notes = [];
                 tasks = [];
                 syncDataWithCouchDB();
