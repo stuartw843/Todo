@@ -77,53 +77,15 @@ function viewFullNotePage(note) {
 }
 
 function goBack() {
-    document.body.innerHTML = `
-        <div class="header">
-            <div class="nav-links">
-                <a onclick="showPage('notes')">Notes</a>
-                <a onclick="showPage('tasks')">Tasks</a>
-            </div>
-            <div class="action-buttons">
-                <button onclick="showNoteForm()"><i class="fas fa-plus"></i> Note</button>
-                <button onclick="showTaskForm()"><i class="fas fa-plus"></i> Task</button>
-                <div class="sync-status offline" id="sync-status"></div>
-                <i class="fas fa-cog settings-icon" onclick="showSettings()"></i>
-            </div>
-        </div>
-        <div class="container">
-            <div id="notes-page">
-                <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Search Notes" oninput="searchNotes()">
-                    <button class="clear-btn" onclick="clearSearch()">&times;</button>
-                </div>
-                <div id="notes-list"></div>
-            </div>
-            <div id="tasks-page" class="hidden">
-                <h2>High Impact Tasks</h2>
-                <div id="high-impact-tasks"></div>
-                <h2>Todo Tasks</h2>
-                <div id="todo-tasks"></div>
-                <h2>Done Tasks</h2>
-                <div id="done-tasks"></div>
-            </div>
-            <div id="settings-page" class="hidden">
-                <div class="modal" onclick="hideSettings()">
-                    <div class="modal-content" onclick="event.stopPropagation()">
-                        <span class="close" onclick="hideSettings()">&times;</span>
-                        <h2>Settings</h2>
-                        <input type="text" id="couchdb-url" placeholder="CouchDB URL"><br>
-                        <input type="text" id="couchdb-username" placeholder="CouchDB Username"><br>
-                        <input type="password" id="couchdb-password" placeholder="CouchDB Password"><br>
-                        <button onclick="saveSettings()">Save Settings</button>
-                        <button onclick="hideSettings()">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    initFuse();
-    loadLocalData();
-    initCouchDBSync();
+    const container = document.querySelector('.container');
+    if (container) {
+        document.body.innerHTML = container.outerHTML;
+        initFuse();
+        loadLocalData();
+        initCouchDBSync();
+    } else {
+        console.error("Container element not found.");
+    }
 }
 
 function editTask(id) {
