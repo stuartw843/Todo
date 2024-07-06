@@ -561,8 +561,8 @@
             updateSyncStatus('syncing');
 
             try {
-                await db.sync(remoteDb);
-                console.log('Data synchronized successfully.');
+                const result = await db.sync(remoteDb);
+                console.log('Data synchronized successfully.', result);
                 updateSyncStatus('online');
             } catch (error) {
                 console.error('Data synchronization failed.', error);
