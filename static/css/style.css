@@ -213,22 +213,22 @@ button {
 }
 
 .search-container {
-    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .search-container input[type="text"] {
-    padding-right: 30px;
-    width: 100%;
+    flex-grow: 1;
+    padding-right: 10px;  /* Adjusted for some padding */
     box-sizing: border-box;
 }
 
 .search-container .clear-btn {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
+    margin-left: 10px;  /* Spacing between input and button */
+    padding: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
 }
