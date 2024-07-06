@@ -14,29 +14,16 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body>
-    <div id="header-container" x-data="{ page: 'notes', syncStatus: 'offline' }">
-        <div class="header">
-            <div class="nav-links">
-                <a :class="{ 'active': page === 'notes' }" @click.prevent="page = 'notes'; showPage('notes')">Notes</a>
-                <a :class="{ 'active': page === 'tasks' }" @click.prevent="page = 'tasks'; showPage('tasks')">Tasks</a>
-            </div>
-            <div class="action-buttons">
-                <button @click="showNoteForm()"><i class="fas fa-plus"></i> Note</button>
-                <button @click="showTaskForm()"><i class="fas fa-plus"></i> Task</button>
-                <div :class="`sync-status ${syncStatus}`" id="sync-status"></div>
-                <i class="fas fa-cog settings-icon" @click="showSettings()"></i>
-            </div>
-        </div>
-    </div>
+    <div id="header-container" x-data="{ page: 'notes', syncStatus: 'offline' }"></div>
     <div class="container">
-        <div id="notes-page" x-show="page === 'notes'">
+        <div id="notes-page" x-show="page === 'notes'" class="page">
             <div class="search-container">
                 <input type="text" id="search-input" placeholder="Search Notes" @input="searchNotes">
                 <button class="clear-btn" @click="clearSearch">×</button>
             </div>
             <div id="notes-list"></div>
         </div>
-        <div id="tasks-page" x-show="page === 'tasks'" class="hidden">
+        <div id="tasks-page" x-show="page === 'tasks'" class="page hidden">
             <h2>High Impact Tasks</h2>
             <div id="high-impact-tasks"></div>
             <h2>Todo Tasks</h2>
@@ -44,7 +31,7 @@
             <h2>Done Tasks</h2>
             <div id="done-tasks"></div>
         </div>
-        <div id="settings-page" x-show="page === 'settings'" class="hidden">
+        <div id="settings-page" x-show="page === 'settings'" class="page hidden">
             <div class="modal" @click="hideSettings()">
                 <div class="modal-content" @click.stop>
                     <span class="close" @click="hideSettings()">×</span>
@@ -92,5 +79,18 @@
     <script src="static/js/notes.js"></script>
     <script src="static/js/tasks.js"></script>
     <script src="static/js/main.js"></script>
+    <script>
+        // Load the header dynamically
+        fetch('static/html/header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-container').innerHTML = data;
+                initHeader();
+                showPage('notes');
+                initFuse();
+                loadLocalData();
+                initCouchDBSync();
+            });
+    </script>
 </body>
 </html>
