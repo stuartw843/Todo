@@ -96,8 +96,6 @@ function goBack() {
         </div>
     `;
 
-    Alpine.start();
-
     initFuse();
     loadLocalData();
     initCouchDBSync();
