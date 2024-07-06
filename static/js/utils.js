@@ -18,8 +18,12 @@ function initFuse() {
 
 function updateSyncStatus(status) {
     const syncStatus = document.getElementById('sync-status');
-    syncStatus.classList.remove('online', 'offline', 'syncing');
-    syncStatus.classList.add(status);
+    if (syncStatus) {
+        syncStatus.classList.remove('online', 'offline', 'syncing');
+        syncStatus.classList.add(status);
+    } else {
+        console.error("Sync status element not found.");
+    }
 }
 
 window.addEventListener('popstate', function(event) {
