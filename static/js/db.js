@@ -1,3 +1,15 @@
+function updateSyncStatus(status) {
+    const syncStatus = document.getElementById('sync-status');
+    if (syncStatus) {
+        syncStatus.classList.remove('online', 'offline', 'syncing');
+        syncStatus.classList.add(status);
+        localStorage.setItem('syncStatus', status);
+    } else {
+        console.error("Sync status element not found.");
+    }
+}
+
+
 async function syncDataWithCouchDB() {
     if (!remoteDb) {
         console.log('Remote CouchDB is not initialized');
