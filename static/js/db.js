@@ -1,18 +1,5 @@
-function updateSyncStatus(status) {
-    const syncStatus = document.getElementById('sync-status');
-    if (syncStatus) {
-        syncStatus.classList.remove('online', 'offline', 'syncing');
-        syncStatus.classList.add(status);
-        localStorage.setItem('syncStatus', status);
-
-        // Update Alpine.js state if available
-        if (document.querySelector('[x-data]') && document.querySelector('[x-data]').__x) {
-            document.querySelector('[x-data]').__x.$data.syncStatus = status;
-        }
-    } else {
-        console.error("Sync status element not found.");
-    }
-}
+let db = new PouchDB('notes_tasks');
+let remoteDb = null;
 
 async function syncDataWithCouchDB() {
     if (!remoteDb) {
@@ -83,4 +70,20 @@ async function loadLocalData() {
     initFuse();
     displayNotes();
     displayTasks();
+}
+
+function updateSyncStatus(status) {
+    const syncStatus = document.getElementById('sync-status');
+    if (syncStatus) {
+        syncStatus.classList.remove('online', 'offline', 'syncing');
+        syncStatus.classList.add(status);
+        localStorage.setItem('syncStatus', status);
+
+        // Update Alpine.js state if available
+        if (document.querySelector('[x-data]') && document.querySelector('[x-data]').__x) {
+            document.querySelector('[x-data]').__x.$data.syncStatus = status;
+        }
+    } else {
+        console.error("Sync status element not found.");
+    }
 }
