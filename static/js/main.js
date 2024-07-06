@@ -2,8 +2,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load templates
     const response = await fetch('static/html/templates.html');
     const templates = await response.text();
-    document.querySelector('body').insertAdjacentHTML('beforeend', `<div x-html="templates"></div>`);
+    document.getElementById('templates').innerHTML = templates;
 
+    // Initialize Alpine.js
     Alpine.start();
 
     // Initialize components
