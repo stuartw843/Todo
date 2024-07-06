@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
     document.getElementById('header-container').appendChild(headerTemplate);
 
-    //showPage('notes');
+    showPage('notes');
     initFuse();
     loadLocalData();
     initCouchDBSync();
