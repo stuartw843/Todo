@@ -33,6 +33,19 @@
             border-radius: 5px;
             background: #f9f9f9;
         }
+        .note-content {
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+        .note-content:after {
+            content: '...';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            padding: 0 10px;
+            background: linear-gradient(to left, #f9f9f9, transparent);
+        }
         .task {
             display: flex;
             flex-direction: column;
@@ -115,6 +128,25 @@
         .sync-status.syncing {
             background-color: yellow;
         }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 500px;
+            width: 100%;
+        }
         @media (min-width: 600px) {
             .task-action-buttons button {
                 width: 48%;
@@ -130,26 +162,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>Notes and Tasks App</h1>
         <nav>
             <button onclick="showPage('notes')">Notes</button>
             <button onclick="showPage('tasks')">Tasks</button>
         </nav>
         <div id="notes-page">
-            <h2>Notes</h2>
             <input type="text" id="search-input" placeholder="Search Notes" oninput="searchNotes()">
+            <button onclick="clearSearch()">Clear</button>
             <div id="notes-list"></div>
-            <button onclick="showNoteForm()">Add Note</button>
-            <button class="danger-button" onclick="deleteAllNotesAndTasks()">Delete All Notes and Tasks</button>
-            <div id="note-form" class="hidden">
-                <h3>New Note</h3>
-                <input type="text" id="note-title" placeholder="Title"><br>
-                <textarea id="note-content" placeholder="Content"></textarea><br>
-                <div id="note-tasks"></div>
-                <button onclick="addNoteTask()">Add Task</button><br>
-                <button onclick="saveNote()">Save Note</button>
-                <button onclick="hideNoteForm()">Cancel</button>
-            </div>
         </div>
         <div id="tasks-page" class="hidden">
             <h2>High Impact Tasks</h2>
@@ -158,31 +178,51 @@
             <div id="todo-tasks"></div>
             <h2>Done Tasks</h2>
             <div id="done-tasks"></div>
-            <button onclick="showTaskForm()">Add Task</button>
-            <div id="task-form" class="hidden">
-                <h3>New Task</h3>
-                <input type="text" id="task-desc" placeholder="Description"><br>
-                <input type="date" id="task-due-date"><br>
-                <select id="task-status">
-                    <option value="High Impact">High Impact</option>
-                    <option value="Todo">Todo</option>
-                </select>
-                <button onclick="saveTask()">Save Task</button>
-                <button onclick="hideTaskForm()">Cancel</button>
-            </div>
         </div>
         <div class="settings-icon" onclick="showSettings()">
             <i class="fas fa-cog"></i>
         </div>
         <div id="settings-page" class="hidden">
-            <h2>Settings</h2>
-            <input type="text" id="couchdb-url" placeholder="CouchDB URL"><br>
-            <input type="text" id="couchdb-username" placeholder="CouchDB Username"><br>
-            <input type="password" id="couchdb-password" placeholder="CouchDB Password"><br>
-            <button onclick="saveSettings()">Save Settings</button>
-            <button onclick="hideSettings()">Cancel</button>
+            <div class="modal">
+                <div class="modal-content">
+                    <h2>Settings</h2>
+                    <input type="text" id="couchdb-url" placeholder="CouchDB URL"><br>
+                    <input type="text" id="couchdb-username" placeholder="CouchDB Username"><br>
+                    <input type="password" id="couchdb-password" placeholder="CouchDB Password"><br>
+                    <button onclick="saveSettings()">Save Settings</button>
+                    <button onclick="hideSettings()">Cancel</button>
+                </div>
+            </div>
         </div>
         <div class="sync-status offline" id="sync-status"></div>
+        <button class="always-visible-button" onclick="showNoteForm()">Add Note</button>
+        <button class="always-visible-button" onclick="showTaskForm()">Add Task</button>
+    </div>
+
+    <div id="note-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>New Note</h3>
+            <input type="text" id="note-title" placeholder="Title"><br>
+            <textarea id="note-content" placeholder="Content"></textarea><br>
+            <div id="note-tasks"></div>
+            <button onclick="addNoteTask()">Add Task</button><br>
+            <button onclick="saveNote()">Save Note</button>
+            <button onclick="hideNoteForm()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="task-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>New Task</h3>
+            <input type="text" id="task-desc" placeholder="Description"><br>
+            <input type="date" id="task-due-date"><br>
+            <select id="task-status">
+                <option value="High Impact">High Impact</option>
+                <option value="Todo">Todo</option>
+            </select>
+            <button onclick="saveTask()">Save Task</button>
+            <button onclick="hideTaskForm()">Cancel</button>
+        </div>
     </div>
 
     <script>
@@ -207,7 +247,6 @@
         function showPage(page) {
             document.getElementById('notes-page').classList.add('hidden');
             document.getElementById('tasks-page').classList.add('hidden');
-            document.getElementById('settings-page').classList.add('hidden');
             document.getElementById(page + '-page').classList.remove('hidden');
             if (page === 'notes') {
                 displayNotes();
@@ -219,39 +258,28 @@
         function displayNotes(filteredNotes = notes) {
             const notesList = document.getElementById('notes-list');
             notesList.innerHTML = '';
+            filteredNotes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
             filteredNotes.forEach(note => {
                 const noteDiv = document.createElement('div');
                 noteDiv.classList.add('note');
                 noteDiv.innerHTML = `
                     <h3>${note.title}</h3>
-                    <div>${converter.makeHtml(note.content)}</div>
-                    <ul>
-                        ${note.tasks.map(taskId => {
-                            const task = tasks.find(t => t._id === taskId);
-                            if (!task) return '';  // Skip if task is undefined
-                            const relatedNoteTitle = note ? `Note: ${note.title}` : '';
-                            return `<li class="task">
-                                <div class="task-header">
-                                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone('${task._id}')">
-                                    <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
-                                    <div class="task-buttons">
-                                        <button class="task-button" onclick="editTask('${task._id}')"><i class="fas fa-edit"></i></button>
-                                        <button class="task-button" onclick="deleteTask('${task._id}')"><i class="fas fa-trash"></i></button>
-                                    </div>
-                                </div>
-                                <div class="task-details">
-                                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                                    <span class="status">Status: ${task.status}</span>
-                                    <span class="related-note">${relatedNoteTitle}</span>
-                                </div>
-                            </li>`;
-                        }).join('')}
-                    </ul>
+                    <div class="note-content">${converter.makeHtml(note.content)}</div>
+                    <small>Updated: ${new Date(note.updatedAt).toLocaleString()}</small>
                     <button class="task-button" onclick="editNote('${note._id}')"><i class="fas fa-edit"></i></button>
                     <button class="task-button" onclick="deleteNote('${note._id}')"><i class="fas fa-trash"></i></button>
                 `;
+                noteDiv.addEventListener('click', () => viewFullNote(note));
                 notesList.appendChild(noteDiv);
             });
+        }
+
+        function viewFullNote(note) {
+            const noteModal = document.getElementById('note-modal');
+            document.getElementById('note-title').value = note.title;
+            document.getElementById('note-content').value = note.content;
+            editingNoteId = note._id;
+            noteModal.classList.remove('hidden');
         }
 
         function searchNotes() {
@@ -265,8 +293,13 @@
             displayNotes(filteredNotes);
         }
 
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            displayNotes(notes);
+        }
+
         function showNoteForm(note) {
-            document.getElementById('note-form').classList.remove('hidden');
+            document.getElementById('note-modal').classList.remove('hidden');
             document.getElementById('note-tasks').innerHTML = '';
             if (note) {
                 document.getElementById('note-title').value = note.title;
@@ -284,7 +317,7 @@
         }
 
         function hideNoteForm() {
-            document.getElementById('note-form').classList.add('hidden');
+            document.getElementById('note-modal').classList.add('hidden');
         }
 
         async function saveNote() {
@@ -385,8 +418,6 @@
             doneTasksList.innerHTML = '';
 
             tasks.forEach(task => {
-                const relatedNote = notes.find(note => note.tasks.includes(task._id));
-                const relatedNoteTitle = relatedNote ? `Note: ${relatedNote.title}` : '';
                 if (!task) return;  // Skip if task is undefined
                 const taskDiv = document.createElement('div');
                 taskDiv.classList.add('task-card');
@@ -402,8 +433,6 @@
                     </div>
                     <div class="task-details">
                         <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
-                        <span class="status">Status: ${task.status}</span>
-                        <span class="related-note">${relatedNoteTitle}</span>
                     </div>
                     <div class="task-action-buttons">
                         <button class="task-button" onclick="changeTaskStatus('${task._id}', 'High Impact')">Move to High Impact</button>
@@ -434,7 +463,7 @@
         }
 
         function showTaskForm(task) {
-            document.getElementById('task-form').classList.remove('hidden');
+            document.getElementById('task-modal').classList.remove('hidden');
             const statusSelect = document.getElementById('task-status');
             statusSelect.innerHTML = statuses.map(status => `<option value="${status}">${status}</option>`).join('');
             if (task) {
@@ -451,7 +480,7 @@
         }
 
         function hideTaskForm() {
-            document.getElementById('task-form').classList.add('hidden');
+            document.getElementById('task-modal').classList.add('hidden');
         }
 
         async function saveTask() {
@@ -529,9 +558,6 @@
 
         function showSettings() {
             document.getElementById('settings-page').classList.remove('hidden');
-            document.getElementById('couchdb-url').value = localStorage.getItem('couchdbUrl') || '';
-            document.getElementById('couchdb-username').value = localStorage.getItem('couchdbUsername') || '';
-            document.getElementById('couchdb-password').value = localStorage.getItem('couchdbPassword') || '';
         }
 
         function hideSettings() {
