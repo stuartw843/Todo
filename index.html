@@ -74,6 +74,32 @@
         </div>
     </div>
 
+    <!-- Templates -->
+    <template id="header-template">
+        <div class="header">
+            <div class="nav-links">
+                <a :class="{ 'active': page === 'notes' }" @click.prevent="page = 'notes'; showPage('notes')">Notes</a>
+                <a :class="{ 'active': page === 'tasks' }" @click.prevent="page = 'tasks'; showPage('tasks')">Tasks</a>
+            </div>
+            <div class="action-buttons">
+                <button @click="showNoteForm()"><i class="fas fa-plus"></i> Note</button>
+                <button @click="showTaskForm()"><i class="fas fa-plus"></i> Task</button>
+                <div :class="`sync-status ${syncStatus}`" id="sync-status"></div>
+                <i class="fas fa-cog settings-icon" @click="showSettings()"></i>
+            </div>
+        </div>
+    </template>
+
+    <template id="note-full-page-template">
+        <div class="note-full-page">
+            <button class="back-button" @click="goBack()">Back</button>
+            <h2 x-text="noteTitle"></h2>
+            <div class="note-content" x-html="noteContent"></div>
+            <h3>Tasks</h3>
+            <div id="note-tasks-page"></div>
+        </div>
+    </template>
+
     <script src="static/js/utils.js"></script>
     <script src="static/js/db.js"></script>
     <script src="static/js/notes.js"></script>
@@ -81,16 +107,15 @@
     <script src="static/js/main.js"></script>
     <script>
         // Load the header dynamically
-        fetch('static/html/header.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('header-container').innerHTML = data;
-                initHeader();
-                showPage('notes');
-                initFuse();
-                loadLocalData();
-                initCouchDBSync();
-            });
+        document.addEventListener('DOMContentLoaded', () => {
+            const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
+            document.getElementById('header-container').appendChild(headerTemplate);
+
+            showPage('notes');
+            initFuse();
+            loadLocalData();
+            initCouchDBSync();
+        });
     </script>
 </body>
 </html>
