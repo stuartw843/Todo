@@ -30,14 +30,14 @@ window.addEventListener('online', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Load the header dynamically
-    fetch('static/html/header.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('header-container').innerHTML = data;
-            initHeader();
-            showPage('notes');
-            initFuse();
-            loadLocalData();
-            initCouchDBSync();
-        });
+    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
+    document.getElementById('header-container').appendChild(headerTemplate);
+
+    Alpine.start();
+
+    showPage('notes');
+    initFuse();
+    loadLocalData();
+    initCouchDBSync();
 });
+
