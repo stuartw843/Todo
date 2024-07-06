@@ -18,7 +18,7 @@
     <div class="container">
         <div id="notes-page" x-show="page === 'notes'" class="page">
             <div class="search-container">
-                <input type="text" id="search-input" placeholder="Search Notes" @input="searchNotes()">
+                <input type="text" id="search-input" placeholder="Search Notes" @input="searchNotes">
                 <button class="clear-btn" @click="clearSearch()">×</button>
             </div>
             <div id="notes-list"></div>
