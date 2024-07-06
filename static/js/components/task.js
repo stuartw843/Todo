@@ -1,3 +1,5 @@
+let statuses = ["High Impact", "Todo"];
+
 function showTaskForm(task) {
     const taskModal = document.getElementById('task-modal');
     if (taskModal) {
@@ -91,12 +93,14 @@ function displayTasks() {
         const taskDiv = document.createElement('div');
         taskDiv.classList.add('task-card');
         taskDiv.dataset.id = task._id;
-        taskDiv.innerHTML = `<div class="task-header">
+        taskDiv.innerHTML = `
+            <div class="task-header">
                 <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone('${task._id}')">
                 <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                 <div class="task-buttons">
                     <button class="task-button" onclick="editTask('${task._id}')"><i class="fas fa-edit"></i></button>
-                    <button class="task-button" onclick="deleteTask('${task._id}')"><i class="fas fa-trash"></i></button>
+                    <button class="task-button" onclick="deleteTask('${task._id}')"><
+                            <i class="fas fa-trash"></i></button>
                 </div>
             </div>
             <div class="task-details">
