@@ -3,27 +3,22 @@ body {
     padding: 0;
     margin: 0;
 }
-
 .hidden {
     display: none !important;
 }
-
 .task-done {
     text-decoration: line-through;
 }
-
 .container {
     max-width: 800px;
     margin: 0 auto;
     padding: 0 10px;
 }
-
 textarea {
     width: 100%;
     height: 100px;
     box-sizing: border-box;
 }
-
 .note, .task-card {
     border: 1px solid #ccc;
     padding: 10px;
@@ -32,13 +27,11 @@ textarea {
     background: #f9f9f9;
     cursor: pointer;
 }
-
 .note-content {
     max-height: 100px;
     overflow: hidden;
     position: relative;
 }
-
 .note-content:after {
     content: '...';
     position: absolute;
@@ -47,35 +40,29 @@ textarea {
     padding: 0 10px;
     background: linear-gradient(to left, #f9f9f9, transparent);
 }
-
 .task {
     display: flex;
     flex-direction: column;
 }
-
 .task-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 10px;
 }
-
 .task-title {
     font-weight: bold;
     font-size: 1.1em;
 }
-
 .task-details {
     display: flex;
     flex-direction: column;
     margin-bottom: 10px;
 }
-
 .task-buttons {
     display: flex;
     justify-content: space-between;
 }
-
 .danger-button {
     background-color: red;
     color: white;
@@ -83,48 +70,40 @@ textarea {
     padding: 10px;
     cursor: pointer;
 }
-
 input[type="text"], input[type="date"], select {
     width: 100%;
     box-sizing: border-box;
     padding: 10px;
     margin-bottom: 10px;
 }
-
 button {
     padding: 8px;
     margin-bottom: 10px;
     width: 100%;
     cursor: pointer;
 }
-
 .task-button {
     margin-left: 5px;
     padding: 5px;
     width: 30px;
     cursor: pointer;
 }
-
 .task-action-buttons {
     display: flex;
     justify-content: space-between;
     margin-top: 5px;
 }
-
 .status {
     font-weight: bold;
     color: #007BFF;
 }
-
 .related-note {
     font-style: italic;
     color: #555;
 }
-
 .settings-icon {
     cursor: pointer;
 }
-
 .sync-status {
     width: 20px;
     height: 20px;
@@ -132,19 +111,15 @@ button {
     margin-right: 20px;
     padding-right: 15px;
 }
-
 .sync-status.online {
     background-color: green;
 }
-
 .sync-status.offline {
     background-color: red;
 }
-
 .sync-status.syncing {
     background-color: yellow;
 }
-
 .modal {
     position: fixed;
     top: 0;
@@ -157,7 +132,6 @@ button {
     align-items: center;
     z-index: 1000;
 }
-
 .modal-content {
     background: white;
     padding: 20px;
@@ -166,14 +140,12 @@ button {
     width: 100%;
     position: relative;
 }
-
 .modal-content .close {
     position: absolute;
     top: 10px;
     right: 10px;
     cursor: pointer;
 }
-
 .header {
     display: flex;
     align-items: center;
@@ -185,12 +157,10 @@ button {
     z-index: 100;
     border-bottom: 1px solid #ccc;
 }
-
 .header .nav-links {
     display: flex;
     align-items: center;
 }
-
 .header .nav-links a {
     margin-right: 10px;
     text-decoration: none;
@@ -198,74 +168,34 @@ button {
     font-weight: bold;
     cursor: pointer;
 }
-
 .header .nav-links a:hover {
     text-decoration: underline;
 }
-
-.nav-links a.active {
-    text-decoration: underline;
-    color: #007BFF;
-}
-
 .header .action-buttons {
     display: flex;
     align-items: center;
 }
-
 .header .action-buttons button {
     margin-right: 10px;
 }
-
 .search-container {
-    display: flex;
-    align-items: center;
     position: relative;
 }
-
 .search-container input[type="text"] {
-    flex-grow: 1;
-    padding-right: 30px;  /* Adjusted for some padding */
-    box-sizing: border-box;
+    padding-right: 30px;
 }
-
 .search-container .clear-btn {
     position: absolute;
     right: 10px;
-    padding: 5px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
     cursor: pointer;
     font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
-
-
 @media (min-width: 600px) {
     .task-action-buttons button {
         width: 48%;
     }
 }
-
-.note-full-page {
-    padding: 20px;
-}
-
-.note-full-page .back-button {
-    display: block;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.note-full-page .back-button:hover {
-    background-color: #0056b3;
-}
-
