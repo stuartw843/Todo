@@ -13,23 +13,12 @@
     <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuid.min.js"></script>
 </head>
 <body>
-    <div class="header">
-        <div class="nav-links">
-            <a onclick="showPage('notes')">Notes</a>
-            <a onclick="showPage('tasks')">Tasks</a>
-        </div>
-        <div class="action-buttons">
-            <button onclick="showNoteForm()"><i class="fas fa-plus"></i> Note</button>
-            <button onclick="showTaskForm()"><i class="fas fa-plus"></i> Task</button>
-            <div class="sync-status offline" id="sync-status"></div>
-            <i class="fas fa-cog settings-icon" onclick="showSettings()"></i>
-        </div>
-    </div>
+    <div id="header-container"></div>
     <div class="container">
         <div id="notes-page">
             <div class="search-container">
                 <input type="text" id="search-input" placeholder="Search Notes" oninput="searchNotes()">
-                <button class="clear-btn" onclick="clearSearch()">&times;</button>
+                <button class="clear-btn" onclick="clearSearch()">×</button>
             </div>
             <div id="notes-list"></div>
         </div>
@@ -89,5 +78,13 @@
     <script src="static/js/notes.js"></script>
     <script src="static/js/tasks.js"></script>
     <script src="static/js/main.js"></script>
+    <script>
+        // Load the header dynamically
+        fetch('static/html/header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-container').innerHTML = data;
+            });
+    </script>
 </body>
 </html>
