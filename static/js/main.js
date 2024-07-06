@@ -27,16 +27,3 @@ window.addEventListener('online', () => {
     updateSyncStatus('syncing');
     syncDataWithCouchDB();
 });
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Load the header dynamically
-    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
-    document.getElementById('header-container').appendChild(headerTemplate);
-
-    Alpine.start();
-
-    showPage('notes');
-    initFuse();
-    loadLocalData();
-    initCouchDBSync();
-});
