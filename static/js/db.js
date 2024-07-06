@@ -5,8 +5,10 @@ function updateSyncStatus(status) {
         syncStatus.classList.add(status);
         localStorage.setItem('syncStatus', status);
 
-        // Update Alpine.js state
-        document.querySelector('[x-data]').__x.$data.syncStatus = status;
+        // Update Alpine.js state if available
+        if (document.querySelector('[x-data]') && document.querySelector('[x-data]').__x) {
+            document.querySelector('[x-data]').__x.$data.syncStatus = status;
+        }
     } else {
         console.error("Sync status element not found.");
     }
