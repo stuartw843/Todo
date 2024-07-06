@@ -54,19 +54,24 @@ async function changeTaskStatus(taskId, newStatus) {
 }
 
 function showTaskForm(task) {
-    document.getElementById('task-modal').classList.remove('hidden');
-    const statusSelect = document.getElementById('task-status');
-    statusSelect.innerHTML = statuses.map(status => `<option value="${status}">${status}</option>`).join('');
-    if (task) {
-        document.getElementById('task-desc').value = task.description;
-        document.getElementById('task-due-date').value = task.dueDate;
-        statusSelect.value = task.status;
-        editingTaskId = task._id;
+    const taskModal = document.getElementById('task-modal');
+    if (taskModal) {
+        taskModal.classList.remove('hidden');
+        const statusSelect = document.getElementById('task-status');
+        statusSelect.innerHTML = statuses.map(status => `<option value="${status}">${status}</option>`).join('');
+        if (task) {
+            document.getElementById('task-desc').value = task.description;
+            document.getElementById('task-due-date').value = task.dueDate;
+            statusSelect.value = task.status;
+            editingTaskId = task._id;
+        } else {
+            document.getElementById('task-desc').value = '';
+            document.getElementById('task-due-date').value = '';
+            statusSelect.value = 'Todo';
+            editingTaskId = null;
+        }
     } else {
-        document.getElementById('task-desc').value = '';
-        document.getElementById('task-due-date').value = '';
-        statusSelect.value = 'Todo';
-        editingTaskId = null;
+        console.error("Task modal element not found.");
     }
 }
 
