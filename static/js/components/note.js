@@ -79,7 +79,128 @@ function goBack() {
     initCouchDBSync();
 }
 
-function editTask(id) {
-    const task = tasks.find(t => t._id === id);
-    showTaskForm(task);
+function searchNotes() {
+    const searchTerm = document.getElementById('search-input').value;
+    if (!searchTerm) {
+        displayNotes(notes);
+        return;
+    }
+    const results = fuse.search(searchTerm);
+    const filteredNotes = results.map(result => result.item);
+    displayNotes(filteredNotes);
+}
+
+function clearSearch() {
+    document.getElementById('search-input').value = '';
+    displayNotes(notes);
+}
+
+function showNoteForm(note) {
+    document.getElementById('note-modal').classList.remove('hidden');
+    document.getElementById('note-tasks').innerHTML = '';
+    if (note) {
+        document.getElementById('note-title').value = note.title;
+        document.getElementById('note-content').value = note.content;
+        note.tasks.forEach(taskId => {
+            const task = tasks.find(t => t._id === taskId);
+            if (task) addNoteTask(task);
+        });
+        editingNoteId = note._id;
+    } else {
+        document.getElementById('note-title').value = '';
+        document.getElementById('note-content').value = '';
+        editingNoteId = null;
+    }
+}
+
+function hideNoteForm() {
+    document.getElementById('note-modal').classList.add('hidden');
+}
+
+async function saveNote() {
+    const title = document.getElementById('note-title').value;
+    const content = document.getElementById('note-content').value;
+    const taskElements = document.querySelectorAll('#note-tasks .task');
+    const noteTasks = [];
+    for (const taskElement of taskElements) {
+        const taskId = taskElement.dataset.id;
+        if (taskId) {
+            noteTasks.push(taskId);
+        } else {
+            const task = {
+                _id: uuid.v4(),
+                description: taskElement.querySelector('.task-desc').value,
+                isDone: false,
+                dueDate: taskElement.querySelector('.task-due-date').value,
+                status: taskElement.querySelector('.task-status').value,
+                updatedAt: new Date().toISOString(),
+                source: 'local',
+                type: 'task'
+            };
+            tasks.push(task);
+            noteTasks.push(task._id);
+            await db.put(task);
+        }
+    }
+    const updatedAt = new Date().toISOString();
+    if (editingNoteId) {
+        const note = notes.find(n => n._id === editingNoteId);
+        note.title = title;
+        note.content = content;
+        note.tasks = noteTasks;
+        note.updatedAt = updatedAt;
+        note.source = 'local';
+        await db.put(note);
+    } else {
+        const note = {
+            _id: uuid.v4(),
+            title,
+            content,
+            tasks: noteTasks,
+            updatedAt,
+            source: 'local',
+            type: 'note'
+        };
+        notes.push(note);
+        await db.put(note);
+    }
+    syncDataWithCouchDB();
+    initFuse();
+    hideNoteForm();
+    displayNotes();
+    displayTasks();
+}
+
+function addNoteTask(task) {
+    const noteTasksDiv = document.getElementById('note-tasks');
+    const taskDiv = document.createElement('div');
+    taskDiv.classList.add('task');
+    taskDiv.dataset.id = task ? task._id : '';
+    taskDiv.innerHTML = `
+        <input type="text" class="task-desc" placeholder="Task description" value="${task ? task.description : ''}">
+        <input type="date" class="task-due-date" value="${task ? task.dueDate : ''}">
+        <select class="task-status">
+            ${statuses.map(status => `<option value="${status}" ${task && task.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+        </select>
+    `;
+    noteTasksDiv.appendChild(taskDiv);
+}
+
+function editNote(id) {
+    const note = notes.find(n => n._id === id);
+    showNoteForm(note);
+}
+
+async function deleteNote(id) {
+    const note = notes.find(n => n._id === id);
+    if (note) {
+        deletedItems.push({ _id: note._id, type: 'note', updatedAt: new Date().toISOString() });
+        notes = notes.filter(n => n._id !== id);
+        await db.remove(note);
+        await db.put({ _id: note._id, _deleted: true });
+        syncDataWithCouchDB();
+        initFuse();
+        displayNotes();
+        displayTasks();
+    }
 }
