@@ -1,5 +1,8 @@
 function showSettings() {
     document.getElementById('settings-page').classList.remove('hidden');
+    document.getElementById('couchdb-url').value = localStorage.getItem('couchdbUrl') || '';
+    document.getElementById('couchdb-username').value = localStorage.getItem('couchdbUsername') || '';
+    document.getElementById('couchdb-password').value = localStorage.getItem('couchdbPassword') || '';
 }
 
 function hideSettings() {
