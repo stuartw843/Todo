@@ -30,8 +30,10 @@ function displayNotes(filteredNotes = notes) {
 
 function viewFullNotePage(note) {
     const notePageTemplate = document.getElementById('note-full-page-template').content.cloneNode(true);
-    document.body.innerHTML = '';
-    document.body.appendChild(notePageTemplate);
+
+    // Clear and add new content, but keep the header intact
+    document.querySelector('.container').innerHTML = '';
+    document.querySelector('.container').appendChild(notePageTemplate);
 
     const notePage = document.querySelector('.note-full-page');
     notePage.__x = Alpine.data('notePage', () => ({
@@ -51,8 +53,8 @@ function viewFullNotePage(note) {
                 <div class="task-header">
                     <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                     <div class="task-buttons">
-                        <button class="task-button" @click="editTask('${task._id}')"><i class="fas fa-edit"></i></button>
-                        <button class="task-button" @click="deleteTask('${task._id}')"><i class="fas fa-trash"></i></button>
+                        <button class="task-button" onclick="editTask('${task._id}')"><i class="fas fa-edit"></i></button>
+                        <button class="task-button" onclick="deleteTask('${task._id}')"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
                 <div class="task-details">
@@ -62,78 +64,41 @@ function viewFullNotePage(note) {
             document.getElementById('note-tasks-page').appendChild(taskDiv);
         }
     });
-
-    // Load the header dynamically
-    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
-    document.getElementById('header-container').appendChild(headerTemplate);
-    initHeader();
 }
 
 function goBack() {
-    document.body.innerHTML = `
-        <div id="header-container"></div>
-        <div class="container">
-            <div id="notes-page" class="page">
-                <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Search Notes" @input="searchNotes()">
-                    <button class="clear-btn" @click="clearSearch()">×</button>
-                </div>
-                <div id="notes-list"></div>
+    document.querySelector('.container').innerHTML = `
+        <div id="notes-page" class="page">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search Notes" @input="searchNotes()">
+                <button class="clear-btn" @click="clearSearch()">×</button>
             </div>
-            <div id="tasks-page" class="page hidden">
-                <h2>High Impact Tasks</h2>
-                <div id="high-impact-tasks"></div>
-                <h2>Todo Tasks</h2>
-                <div id="todo-tasks"></div>
-                <h2>Done Tasks</h2>
-                <div id="done-tasks"></div>
-            </div>
-            <div id="settings-page" class="page hidden">
-                <div class="modal" @click="hideSettings()">
-                    <div class="modal-content" @click.stop>
-                        <span class="close" @click="hideSettings()">×</span>
-                        <h2>Settings</h2>
-                        <input type="text" id="couchdb-url" placeholder="CouchDB URL"><br>
-                        <input type="text" id="couchdb-username" placeholder="CouchDB Username"><br>
-                        <input type="password" id="couchdb-password" placeholder="CouchDB Password"><br>
-                        <button @click="saveSettings()">Save Settings</button>
-                        <button @click="hideSettings()">Cancel</button>
-                    </div>
-                </div>
-            </div>
+            <div id="notes-list"></div>
         </div>
-        <div id="note-modal" class="modal hidden" @click="hideNoteForm()">
-            <div class="modal-content" @click.stop>
-                <span class="close" @click="hideNoteForm()">×</span>
-                <h3>New Note</h3>
-                <input type="text" id="note-title" placeholder="Title"><br>
-                <textarea id="note-content" placeholder="Content"></textarea><br>
-                <div id="note-tasks"></div>
-                <button @click="addNoteTask()">Add Task</button><br>
-                <button @click="saveNote()">Save Note</button>
-                <button @click="hideNoteForm()">Cancel</button>
-            </div>
+        <div id="tasks-page" class="page hidden">
+            <h2>High Impact Tasks</h2>
+            <div id="high-impact-tasks"></div>
+            <h2>Todo Tasks</h2>
+            <div id="todo-tasks"></div>
+            <h2>Done Tasks</h2>
+            <div id="done-tasks"></div>
         </div>
-        <div id="task-modal" class="modal hidden" @click="hideTaskForm()">
-            <div class="modal-content" @click.stop>
-                <span class="close" @click="hideTaskForm()">×</span>
-                <h3>New Task</h3>
-                <input type="text" id="task-desc" placeholder="Description"><br>
-                <input type="date" id="task-due-date"><br>
-                <select id="task-status">
-                    <option value="High Impact">High Impact</option>
-                    <option value="Todo">Todo</option>
-                </select>
-                <button @click="saveTask()">Save Task</button>
-                <button @click="hideTaskForm()">Cancel</button>
+        <div id="settings-page" class="page hidden">
+            <div class="modal" @click="hideSettings()">
+                <div class="modal-content" @click.stop>
+                    <span class="close" @click="hideSettings()">×</span>
+                    <h2>Settings</h2>
+                    <input type="text" id="couchdb-url" placeholder="CouchDB URL"><br>
+                    <input type="text" id="couchdb-username" placeholder="CouchDB Username"><br>
+                    <input type="password" id="couchdb-password" placeholder="CouchDB Password"><br>
+                    <button @click="saveSettings()">Save Settings</button>
+                    <button @click="hideSettings()">Cancel</button>
+                </div>
             </div>
         </div>
     `;
 
-    // Load the header dynamically
-    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
-    document.getElementById('header-container').appendChild(headerTemplate);
-    initHeader();
+    Alpine.start();
 
     initFuse();
     loadLocalData();
