@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.text())
         .then(data => {
             document.getElementById('header-container').innerHTML = data;
+            initHeader();
             showPage('notes');
             initFuse();
             loadLocalData();
