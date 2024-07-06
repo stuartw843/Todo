@@ -215,23 +215,29 @@ button {
 .search-container {
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 .search-container input[type="text"] {
     flex-grow: 1;
-    padding-right: 10px;  /* Adjusted for some padding */
+    padding-right: 30px;  /* Adjusted for some padding */
     box-sizing: border-box;
 }
 
 .search-container .clear-btn {
-    margin-left: 10px;  /* Spacing between input and button */
-    padding: 10px;
+    position: absolute;
+    right: 10px;
+    padding: 5px;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 
 @media (min-width: 600px) {
     .task-action-buttons button {
