@@ -1,29 +1,37 @@
-function showSettings() {
-    document.getElementById('settings-page').classList.remove('hidden');
-    document.getElementById('couchdb-url').value = localStorage.getItem('couchdbUrl') || '';
-    document.getElementById('couchdb-username').value = localStorage.getItem('couchdbUsername') || '';
-    document.getElementById('couchdb-password').value = localStorage.getItem('couchdbPassword') || '';
-}
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load templates
+    const response = await fetch('static/html/templates.html');
+    const templates = await response.text();
+    document.querySelector('body').insertAdjacentHTML('beforeend', `<div x-html="templates"></div>`);
 
-function hideSettings() {
-    document.getElementById('settings-page').classList.add('hidden');
-}
+    Alpine.start();
 
-function saveSettings() {
-    localStorage.setItem('couchdbUrl', document.getElementById('couchdb-url').value);
-    localStorage.setItem('couchdbUsername', document.getElementById('couchdb-username').value);
-    localStorage.setItem('couchdbPassword', document.getElementById('couchdb-password').value);
+    // Initialize components
+    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
+    document.getElementById('header-container').appendChild(headerTemplate);
+
+    showPage('notes');
+    initFuse();
+    loadLocalData();
     initCouchDBSync();
-    hideSettings();
+});
+
+function app() {
+    return {
+        page: 'notes',
+        syncStatus: 'offline',
+        templates: '',
+        showPage,
+        searchNotes,
+        clearSearch,
+        showNoteForm,
+        showTaskForm,
+        showSettings,
+        hideSettings,
+        addNoteTask,
+        saveNote,
+        hideNoteForm,
+        saveTask,
+        hideTaskForm
+    };
 }
-
-window.addEventListener('offline', () => {
-    console.log('You are offline');
-    updateSyncStatus('offline');
-});
-
-window.addEventListener('online', () => {
-    console.log('You are online');
-    updateSyncStatus('syncing');
-    syncDataWithCouchDB();
-});
