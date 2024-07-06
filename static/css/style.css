@@ -203,6 +203,11 @@ button {
     text-decoration: underline;
 }
 
+.nav-links a.active {
+    text-decoration: underline;
+    color: #007BFF;
+}
+
 .header .action-buttons {
     display: flex;
     align-items: center;
