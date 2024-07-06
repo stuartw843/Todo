@@ -28,15 +28,11 @@ function updateSyncStatus(status) {
 
 function showPage(page) {
     history.pushState({ page: page }, '', `#${page}`);
-    document.getElementById('notes-page').classList.add('hidden');
-    document.getElementById('tasks-page').classList.add('hidden');
+    document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
     document.getElementById(page + '-page').classList.remove('hidden');
 
-    // Highlight active page in the nav bar
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.classList.remove('active');
-    });
-    document.querySelector(`.nav-links a[onclick="showPage('${page}')"]`).classList.add('active');
+    // Update Alpine.js state
+    document.querySelector('[x-data]').__x.$data.page = page;
 
     if (page === 'notes') {
         displayNotes();
