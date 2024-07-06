@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initFuse();
     loadLocalData();
     initCouchDBSync();
+    initHeader();
+    initTasks();
 });
 
 function app() {
@@ -32,6 +34,9 @@ function app() {
         saveNote,
         hideNoteForm,
         saveTask,
-        hideTaskForm
+        hideTaskForm,
+        toggleTaskDone,
+        deleteTask,
+        changeTaskStatus
     };
 }
