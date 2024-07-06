@@ -1,3 +1,84 @@
+let statuses = ["High Impact", "Todo"];
+
+function showTaskForm(task) {
+    const taskModal = document.getElementById('task-modal');
+    if (taskModal) {
+        taskModal.classList.remove('hidden');
+        const statusSelect = document.getElementById('task-status');
+        statusSelect.innerHTML = statuses.map(status => `<option value="${status}">${status}</option>`).join('');
+        if (task) {
+            document.getElementById('task-desc').value = task.description;
+            document.getElementById('task-due-date').value = task.dueDate;
+            statusSelect.value = task.status;
+            editingTaskId = task._id;
+        } else {
+            document.getElementById('task-desc').value = '';
+            document.getElementById('task-due-date').value = '';
+            statusSelect.value = 'Todo';
+            editingTaskId = null;
+        }
+    } else {
+        console.error("Task modal element not found.");
+    }
+}
+
+async function saveTask() {
+    const description = document.getElementById('task-desc').value;
+    const dueDate = document.getElementById('task-due-date').value;
+    const status = document.getElementById('task-status').value;
+    const updatedAt = new Date().toISOString();
+    if (editingTaskId) {
+        const task = tasks.find(t => t._id === editingTaskId);
+        task.description = description;
+        task.dueDate = dueDate;
+        task.status = status;
+        task.updatedAt = updatedAt;
+        task.source = 'local';
+        await db.put(task);
+    } else {
+        const task = { _id: uuid.v4(), description, isDone: false, dueDate, status, updatedAt, source: 'local', type: 'task' };
+        tasks.push(task);
+        await db.put(task);
+    }
+    syncDataWithCouchDB();
+    hideTaskForm();
+    displayTasks();
+    displayNotes();
+}
+
+function hideTaskForm() {
+    const taskModal = document.getElementById('task-modal');
+    if (taskModal) {
+        taskModal.classList.add('hidden');
+    } else {
+        console.error("Task modal element not found.");
+    }
+}
+
+async function toggleTaskDone(id) {
+    const task = tasks.find(t => t._id === id);
+    task.isDone = !task.isDone;
+    task.updatedAt = new Date().toISOString();
+    task.source = 'local';
+    await db.put(task);
+    syncDataWithCouchDB();
+    displayTasks();
+    displayNotes();
+}
+
+async function deleteTask(id) {
+    const task = tasks.find(t => t._id === id);
+    if (task) {
+        deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
+        tasks = tasks.filter(t => t._id !== id);
+        await db.remove(task);
+        await db.put({ _id: task._id, _deleted: true });
+        syncDataWithCouchDB();
+        displayTasks();
+        displayNotes();
+    }
+}
+
 function displayTasks() {
     const highImpactTasksList = document.getElementById('high-impact-tasks');
     const todoTasksList = document.getElementById('todo-tasks');
@@ -53,101 +134,30 @@ async function changeTaskStatus(taskId, newStatus) {
     }
 }
 
-function showTaskForm(task) {
-    const taskModal = document.getElementById('task-modal');
-    if (taskModal) {
-        taskModal.classList.remove('hidden');
-        const statusSelect = document.getElementById('task-status');
-        statusSelect.innerHTML = statuses.map(status => `<option value="${status}">${status}</option>`).join('');
-        if (task) {
-            document.getElementById('task-desc').value = task.description;
-            document.getElementById('task-due-date').value = task.dueDate;
-            statusSelect.value = task.status;
-            editingTaskId = task._id;
-        } else {
-            document.getElementById('task-desc').value = '';
-            document.getElementById('task-due-date').value = '';
-            statusSelect.value = 'Todo';
-            editingTaskId = null;
-        }
-    } else {
-        console.error("Task modal element not found.");
-    }
-}
-
-function hideTaskForm() {
-    document.getElementById('task-modal').classList.add('hidden');
-}
-
-async function saveTask() {
-    const description = document.getElementById('task-desc').value;
-    const dueDate = document.getElementById('task-due-date').value;
-    const status = document.getElementById('task-status').value;
-    const updatedAt = new Date().toISOString();
-    if (editingTaskId) {
-        const task = tasks.find(t => t._id === editingTaskId);
-        task.description = description;
-        task.dueDate = dueDate;
-        task.status = status;
-        task.updatedAt = updatedAt;
-        task.source = 'local';
-        await db.put(task);
-    } else {
-        const task = { _id: uuid.v4(), description, isDone: false, dueDate, status, updatedAt, source: 'local', type: 'task' };
-        tasks.push(task);
-        await db.put(task);
-    }
-    syncDataWithCouchDB();
-    hideTaskForm();
-    displayTasks();
-    displayNotes();
-}
-
-async function toggleTaskDone(id) {
-    const task = tasks.find(t => t._id === id);
-    task.isDone = !task.isDone;
-    task.updatedAt = new Date().toISOString();
-    task.source = 'local';
-    await db.put(task);
-    syncDataWithCouchDB();
-    displayTasks();
-    displayNotes();
-}
-
-function editTask(id) {
-    const task = tasks.find(t => t._id === id);
-    showTaskForm(task);
-}
-
-async function deleteTask(id) {
-    const task = tasks.find(t => t._id === id);
-    if (task) {
-        deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
-        tasks = tasks.filter(t => t._id !== id);
-        await db.remove(task);
-        await db.put({ _id: task._id, _deleted: true });
-        syncDataWithCouchDB();
-        displayTasks();
-        displayNotes();
-    }
-}
-
-async function deleteAllNotesAndTasks() {
-    if (confirm("Are you sure you want to delete all notes and tasks? This action cannot be undone.")) {
-        for (const note of notes) {
-            deletedItems.push({ _id: note._id, type: 'note', updatedAt: new Date().toISOString() });
-            await db.remove(note);
-            await db.put({ _id: note._id, _deleted: true });
-        }
-        for (const task of tasks) {
-            deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
-            await db.remove(task);
-            await db.put({ _id: task._id, _deleted: true });
-        }
-        notes = [];
-        tasks = [];
-        syncDataWithCouchDB();
-        displayNotes();
-        displayTasks();
-    }
+function initTasks() {
+    // Initialize any specific task-related events or configurations
+    document.querySelectorAll('.task-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            const action = button.getAttribute('data-action');
+            const taskId = button.closest('.task-card').dataset.id;
+            if (action && taskId) {
+                switch (action) {
+                    case 'edit':
+                        editTask(taskId);
+                        break;
+                    case 'delete':
+                        deleteTask(taskId);
+                        break;
+                    case 'toggleDone':
+                        toggleTaskDone(taskId);
+                        break;
+                    case 'changeStatus':
+                        const newStatus = button.getAttribute('data-status');
+                        changeTaskStatus(taskId, newStatus);
+                        break;
+                }
+            }
+        });
+    });
 }
