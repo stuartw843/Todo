@@ -183,4 +183,57 @@ button {
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid
+    border-bottom: 1px solid #ccc;
+}
+
+.header .nav-links {
+    display: flex;
+    align-items: center;
+}
+
+.header .nav-links a {
+    margin-right: 10px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.header .nav-links a:hover {
+    text-decoration: underline;
+}
+
+.header .action-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.header .action-buttons button {
+    margin-right: 10px;
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-container input[type="text"] {
+    padding-right: 30px;
+}
+
+.search-container .clear-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+@media (min-width: 600px) {
+    .task-action-buttons button {
+        width: 48%;
+    }
+}
+
