@@ -33,8 +33,13 @@ function viewFullNotePage(note) {
     document.body.innerHTML = '';
     document.body.appendChild(notePageTemplate);
 
-    document.querySelector('.note-full-page [x-text="noteTitle"]').innerText = note.title;
-    document.querySelector('.note-full-page [x-html="noteContent"]').innerHTML = converter.makeHtml(note.content);
+    const notePage = document.querySelector('.note-full-page');
+    notePage.__x = Alpine.data('notePage', () => ({
+        noteTitle: note.title,
+        noteContent: converter.makeHtml(note.content)
+    }));
+
+    Alpine.start();
 
     note.tasks.forEach(taskId => {
         const task = tasks.find(t => t._id === taskId);
@@ -160,7 +165,6 @@ function initHeader() {
         updateSyncStatus(syncStatus);
     }
 }
-
 
 function searchNotes() {
     const searchTerm = document.getElementById('search-input').value;
