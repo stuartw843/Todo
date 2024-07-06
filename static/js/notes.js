@@ -33,7 +33,7 @@ function viewFullNotePage(note) {
     notePage.innerHTML = `
         <div id="header-container"></div>
         <div class="note-full-page">
-            <button onclick="goBack()" class="back-button">Back</button>
+            <button @click="goBack()" class="back-button">Back</button>
             <h2>${note.title}</h2>
             <div class="note-content">${converter.makeHtml(note.content)}</div>
             <h3>Tasks</h3>
@@ -60,8 +60,8 @@ function viewFullNotePage(note) {
                 <div class="task-header">
                     <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                     <div class="task-buttons">
-                        <button class="task-button" onclick="editTask('${task._id}')"><i class="fas fa-edit"></i></button>
-                        <button class="task-button" onclick="deleteTask('${task._id}')"><i class="fas fa-trash"></i></button>
+                        <button class="task-button" @click="editTask('${task._id}')"><i class="fas fa-edit"></i></button>
+                        <button class="task-button" @click="deleteTask('${task._id}')"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
                 <div class="task-details">
@@ -77,14 +77,14 @@ function goBack() {
     document.body.innerHTML = `
         <div id="header-container"></div>
         <div class="container">
-            <div id="notes-page">
+            <div id="notes-page" class="page">
                 <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Search Notes" oninput="searchNotes()">
-                    <button class="clear-btn" onclick="clearSearch()">×</button>
+                    <input type="text" id="search-input" placeholder="Search Notes" @input="searchNotes()">
+                    <button class="clear-btn" @click="clearSearch()">×</button>
                 </div>
                 <div id="notes-list"></div>
             </div>
-            <div id="tasks-page" class="hidden">
+            <div id="tasks-page" class="page hidden">
                 <h2>High Impact Tasks</h2>
                 <div id="high-impact-tasks"></div>
                 <h2>Todo Tasks</h2>
@@ -92,16 +92,16 @@ function goBack() {
                 <h2>Done Tasks</h2>
                 <div id="done-tasks"></div>
             </div>
-            <div id="settings-page" class="hidden">
-                <div class="modal" onclick="hideSettings()">
-                    <div class="modal-content" onclick="event.stopPropagation()">
-                        <span class="close" onclick="hideSettings()">&times;</span>
+            <div id="settings-page" class="page hidden">
+                <div class="modal" @click="hideSettings()">
+                    <div class="modal-content" @click.stop>
+                        <span class="close" @click="hideSettings()">×</span>
                         <h2>Settings</h2>
                         <input type="text" id="couchdb-url" placeholder="CouchDB URL"><br>
                         <input type="text" id="couchdb-username" placeholder="CouchDB Username"><br>
                         <input type="password" id="couchdb-password" placeholder="CouchDB Password"><br>
-                        <button onclick="saveSettings()">Save Settings</button>
-                        <button onclick="hideSettings()">Cancel</button>
+                        <button @click="saveSettings()">Save Settings</button>
+                        <button @click="hideSettings()">Cancel</button>
                     </div>
                 </div>
             </div>
