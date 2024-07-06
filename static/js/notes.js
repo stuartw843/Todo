@@ -1,46 +1,3 @@
-let notes = [];
-let tasks = [];
-let deletedItems = [];
-let editingNoteId = null;
-let editingTaskId = null;
-let fuse;
-
-function initFuse() {
-    fuse = new Fuse(notes, {
-        keys: ['title', 'content'],
-        threshold: 0.3
-    });
-}
-
-function showPage(page) {
-    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.getElementById(`${page}-page`).classList.remove('hidden');
-    if (page === 'notes') {
-        displayNotes();
-    } else if (page === 'tasks') {
-        displayTasks();
-    }
-}
-
-function displayNotes(filteredNotes = notes) {
-    const notesList = document.getElementById('notes-list');
-    notesList.innerHTML = '';
-    filteredNotes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-    filteredNotes.forEach(note => {
-        const noteDiv = document.createElement('div');
-        noteDiv.classList.add('note');
-        noteDiv.innerHTML = `
-            <h3>${note.title}</h3>
-            <div class="note-content">${converter.makeHtml(note.content)}</div>
-            <small>Updated: ${new Date(note.updatedAt).toLocaleString()}</small>
-            <button class="task-button" onclick="editNote('${note._id}')"><i class="fas fa-edit"></i></button>
-            <button class="task-button" onclick="deleteNote('${note._id}')"><i class="fas fa-trash"></i></button>
-        `;
-        noteDiv.addEventListener('click', () => viewFullNotePage(note));
-        notesList.appendChild(noteDiv);
-    });
-}
-
 function viewFullNotePage(note) {
     const notePageTemplate = document.getElementById('note-full-page-template').content.cloneNode(true);
 
@@ -50,7 +7,8 @@ function viewFullNotePage(note) {
     const notePage = document.querySelector('.note-full-page');
     notePage.__x = Alpine.data('notePage', () => ({
         noteTitle: note.title,
-        noteContent: converter.makeHtml(note.content)}));
+        noteContent: converter.makeHtml(note.content)
+    }));
 
     Alpine.start();
 
@@ -246,3 +204,5 @@ async function deleteNote(id) {
         displayTasks();
     }
 }
+
+                
