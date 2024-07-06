@@ -1,7 +1,20 @@
+let notes = [];
+let tasks = [];
+let deletedItems = [];
+let editingNoteId = null;
+let editingTaskId = null;
+let fuse;
+
+function initFuse() {
+    fuse = new Fuse(notes, {
+        keys: ['title', 'content'],
+        threshold: 0.3
+    });
+}
+
 function showPage(page) {
-    document.getElementById('notes-page').classList.add('hidden');
-    document.getElementById('tasks-page').classList.add('hidden');
-    document.getElementById(page + '-page').classList.remove('hidden');
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById(`${page}-page`).classList.remove('hidden');
     if (page === 'notes') {
         displayNotes();
     } else if (page === 'tasks') {
@@ -31,15 +44,15 @@ function displayNotes(filteredNotes = notes) {
 function viewFullNotePage(note) {
     const notePageTemplate = document.getElementById('note-full-page-template').content.cloneNode(true);
 
-    // Clear and add new content, but keep the header intact
     document.querySelector('.container').innerHTML = '';
     document.querySelector('.container').appendChild(notePageTemplate);
 
     const notePage = document.querySelector('.note-full-page');
     notePage.__x = Alpine.data('notePage', () => ({
         noteTitle: note.title,
-        noteContent: converter.makeHtml(note.content)
-    }));
+        noteContent: converter.makeHtml(note.content)}));
+
+    Alpine.start();
 
     note.tasks.forEach(taskId => {
         const task = tasks.find(t => t._id === taskId);
@@ -62,6 +75,11 @@ function viewFullNotePage(note) {
             document.getElementById('note-tasks-page').appendChild(taskDiv);
         }
     });
+
+    // Load the header dynamically
+    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
+    document.getElementById('header-container').appendChild(headerTemplate);
+    initHeader();
 }
 
 function goBack() {
@@ -96,35 +114,11 @@ function goBack() {
         </div>
     `;
 
+    Alpine.start();
+
     initFuse();
     loadLocalData();
     initCouchDBSync();
-}
-
-function editTask(id) {
-    const task = tasks.find(t => t._id === id);
-    showTaskForm(task);
-}
-
-function initHeader() {
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', (event) => {
-            event.preventDefault();
-            const page = link.getAttribute('onclick').match(/showPage\('(.+)'\)/)[1];
-            showPage(page);
-        });
-    });
-
-    document.querySelector('.settings-icon').addEventListener('click', (event) => {
-        event.preventDefault();
-        showSettings();
-    });
-
-    // Update sync status
-    const syncStatus = localStorage.getItem('syncStatus');
-    if (syncStatus) {
-        updateSyncStatus(syncStatus);
-    }
 }
 
 function searchNotes() {
