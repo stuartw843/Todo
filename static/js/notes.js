@@ -41,8 +41,6 @@ function viewFullNotePage(note) {
         noteContent: converter.makeHtml(note.content)
     }));
 
-    Alpine.start();
-
     note.tasks.forEach(taskId => {
         const task = tasks.find(t => t._id === taskId);
         if (task) {
