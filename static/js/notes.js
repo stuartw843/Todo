@@ -29,26 +29,12 @@ function displayNotes(filteredNotes = notes) {
 }
 
 function viewFullNotePage(note) {
-    const notePage = document.createElement('div');
-    notePage.innerHTML = `
-        <div id="header-container"></div>
-        <div class="note-full-page">
-            <button @click="goBack()" class="back-button">Back</button>
-            <h2>${note.title}</h2>
-            <div class="note-content">${converter.makeHtml(note.content)}</div>
-            <h3>Tasks</h3>
-            <div id="note-tasks-page"></div>
-        </div>
-    `;
+    const notePageTemplate = document.getElementById('note-full-page-template').content.cloneNode(true);
     document.body.innerHTML = '';
-    document.body.appendChild(notePage);
+    document.body.appendChild(notePageTemplate);
 
-    fetch('static/html/header.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('header-container').innerHTML = data;
-            initHeader();
-        });
+    document.querySelector('.note-full-page [x-text="noteTitle"]').innerText = note.title;
+    document.querySelector('.note-full-page [x-html="noteContent"]').innerHTML = converter.makeHtml(note.content);
 
     note.tasks.forEach(taskId => {
         const task = tasks.find(t => t._id === taskId);
@@ -71,6 +57,11 @@ function viewFullNotePage(note) {
             document.getElementById('note-tasks-page').appendChild(taskDiv);
         }
     });
+
+    // Load the header dynamically
+    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
+    document.getElementById('header-container').appendChild(headerTemplate);
+    initHeader();
 }
 
 function goBack() {
@@ -106,14 +97,38 @@ function goBack() {
                 </div>
             </div>
         </div>
+        <div id="note-modal" class="modal hidden" @click="hideNoteForm()">
+            <div class="modal-content" @click.stop>
+                <span class="close" @click="hideNoteForm()">×</span>
+                <h3>New Note</h3>
+                <input type="text" id="note-title" placeholder="Title"><br>
+                <textarea id="note-content" placeholder="Content"></textarea><br>
+                <div id="note-tasks"></div>
+                <button @click="addNoteTask()">Add Task</button><br>
+                <button @click="saveNote()">Save Note</button>
+                <button @click="hideNoteForm()">Cancel</button>
+            </div>
+        </div>
+        <div id="task-modal" class="modal hidden" @click="hideTaskForm()">
+            <div class="modal-content" @click.stop>
+                <span class="close" @click="hideTaskForm()">×</span>
+                <h3>New Task</h3>
+                <input type="text" id="task-desc" placeholder="Description"><br>
+                <input type="date" id="task-due-date"><br>
+                <select id="task-status">
+                    <option value="High Impact">High Impact</option>
+                    <option value="Todo">Todo</option>
+                </select>
+                <button @click="saveTask()">Save Task</button>
+                <button @click="hideTaskForm()">Cancel</button>
+            </div>
+        </div>
     `;
 
-    fetch('static/html/header.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('header-container').innerHTML = data;
-            initHeader();
-        });
+    // Load the header dynamically
+    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
+    document.getElementById('header-container').appendChild(headerTemplate);
+    initHeader();
 
     initFuse();
     loadLocalData();
@@ -145,6 +160,7 @@ function initHeader() {
         updateSyncStatus(syncStatus);
     }
 }
+
 
 function searchNotes() {
     const searchTerm = document.getElementById('search-input').value;
