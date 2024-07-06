@@ -28,8 +28,15 @@ window.addEventListener('online', () => {
     syncDataWithCouchDB();
 });
 
-// Initial setup
-showPage('notes');
-initFuse();
-loadLocalData();
-initCouchDBSync();
+document.addEventListener('DOMContentLoaded', () => {
+    // Load the header dynamically
+    fetch('static/html/header.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('header-container').innerHTML = data;
+            showPage('notes');
+            initFuse();
+            loadLocalData();
+            initCouchDBSync();
+        });
+});
