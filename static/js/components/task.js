@@ -91,8 +91,7 @@ function displayTasks() {
         const taskDiv = document.createElement('div');
         taskDiv.classList.add('task-card');
         taskDiv.dataset.id = task._id;
-        taskDiv.innerHTML = `
-            <div class="task-header">
+        taskDiv.innerHTML = `<div class="task-header">
                 <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone('${task._id}')">
                 <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                 <div class="task-buttons">
