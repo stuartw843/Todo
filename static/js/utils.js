@@ -1,49 +1,47 @@
-let db = new PouchDB('notes_tasks');
-let remoteDb = null;
-const converter = new showdown.Converter();
-const statuses = ["High Impact", "Todo"];
-let notes = [];
-let tasks = [];
-let deletedItems = [];
-let editingNoteId = null;
-let editingTaskId = null;
-let fuse;
-
-function initFuse() {
-    fuse = new Fuse(notes, {
-        keys: ['title', 'content'],
-        threshold: 0.3
-    });
-}
-
 function updateSyncStatus(status) {
     const syncStatus = document.getElementById('sync-status');
     if (syncStatus) {
         syncStatus.classList.remove('online', 'offline', 'syncing');
         syncStatus.classList.add(status);
+        localStorage.setItem('syncStatus', status);
+
+        // Update Alpine.js state if available
+        if (document.querySelector('[x-data]') && document.querySelector('[x-data]').__x) {
+            document.querySelector('[x-data]').__x.$data.syncStatus = status;
+        }
     } else {
         console.error("Sync status element not found.");
     }
 }
 
-function showPage(page) {
-    history.pushState({ page: page }, '', `#${page}`);
-    document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
-    document.getElementById(page + '-page').classList.remove('hidden');
-
-    // Update Alpine.js state
-    document.querySelector('[x-data]').__x.$data.page = page;
-
-    if (page === 'notes') {
-        displayNotes();
-    } else if (page === 'tasks') {
-        displayTasks();
-    }
+function showSettings() {
+    document.getElementById('settings-page').classList.remove('hidden');
 }
 
-window.addEventListener('popstate', function(event) {
-    if (event.state) {
-        showPage(event.state.page);
-    }
-});
+function hideSettings() {
+    document.getElementById('settings-page').classList.add('hidden');
+}
 
+function saveSettings() {
+    localStorage.setItem('couchdbUrl', document.getElementById('couchdb-url').value);
+    localStorage.setItem('couchdbUsername', document.getElementById('couchdb-username').value);
+    localStorage.setItem('couchdbPassword', document.getElementById('couchdb-password').value);
+    initCouchDBSync();
+    hideSettings();
+}
+
+function showNoteForm() {
+    document.getElementById('note-modal').classList.remove('hidden');
+}
+
+function hideNoteForm() {
+    document.getElementById('note-modal').classList.add('hidden');
+}
+
+function showTaskForm() {
+    document.getElementById('task-modal').classList.remove('hidden');
+}
+
+function hideTaskForm() {
+    document.getElementById('task-modal').classList.add('hidden');
+}
