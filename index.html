@@ -13,13 +13,13 @@
     <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body>
-    <div id="header-container" x-data="{ page: 'notes', syncStatus: 'offline' }"></div>
+<body x-data="{ page: 'notes', syncStatus: 'offline' }">
+    <div id="header-container"></div>
     <div class="container">
         <div id="notes-page" x-show="page === 'notes'" class="page">
             <div class="search-container">
                 <input type="text" id="search-input" placeholder="Search Notes" @input="searchNotes">
-                <button class="clear-btn" @click="clearSearch">×</button>
+                <button class="clear-btn" @click="clearSearch()">×</button>
             </div>
             <div id="notes-list"></div>
         </div>
@@ -106,10 +106,12 @@
     <script src="static/js/tasks.js"></script>
     <script src="static/js/main.js"></script>
     <script>
-        // Load the header dynamically
+        // Initialize the header only once
         document.addEventListener('DOMContentLoaded', () => {
             const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
             document.getElementById('header-container').appendChild(headerTemplate);
+
+            Alpine.start();
 
             showPage('notes');
             initFuse();
