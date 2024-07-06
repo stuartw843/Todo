@@ -28,21 +28,22 @@ function displayNotes(filteredNotes = notes) {
     });
 }
 
+function goBack() {
+    const container = document.querySelector('.container');
+    if (container) {
+        document.body.innerHTML = container.outerHTML;
+        initFuse();
+        loadLocalData();
+        initCouchDBSync();
+    } else {
+        console.error("Container element not found.");
+    }
+}
+
 function viewFullNotePage(note) {
     const notePage = document.createElement('div');
     notePage.innerHTML = `
-        <div class="header">
-            <div class="nav-links">
-                <a onclick="showPage('notes')">Notes</a>
-                <a onclick="showPage('tasks')">Tasks</a>
-            </div>
-            <div class="action-buttons">
-                <button onclick="showNoteForm()"><i class="fas fa-plus"></i> Note</button>
-                <button onclick="showTaskForm()"><i class="fas fa-plus"></i> Task</button>
-                <div class="sync-status offline" id="sync-status"></div>
-                <i class="fas fa-cog settings-icon" onclick="showSettings()"></i>
-            </div>
-        </div>
+        <div id="header-container"></div>
         <div class="note-full-page">
             <button onclick="goBack()" class="back-button">Back</button>
             <h2>${note.title}</h2>
@@ -53,6 +54,13 @@ function viewFullNotePage(note) {
     `;
     document.body.innerHTML = '';
     document.body.appendChild(notePage);
+
+    fetch('static/html/header.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('header-container').innerHTML = data;
+        });
+
     note.tasks.forEach(taskId => {
         const task = tasks.find(t => t._id === taskId);
         if (task) {
@@ -74,18 +82,6 @@ function viewFullNotePage(note) {
             document.getElementById('note-tasks-page').appendChild(taskDiv);
         }
     });
-}
-
-function goBack() {
-    const container = document.querySelector('.container');
-    if (container) {
-        document.body.innerHTML = container.outerHTML;
-        initFuse();
-        loadLocalData();
-        initCouchDBSync();
-    } else {
-        console.error("Container element not found.");
-    }
 }
 
 function editTask(id) {
