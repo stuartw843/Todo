@@ -27,57 +27,13 @@ function toggleEditorSize() {
 
 // Ensure styles are correctly applied
 document.addEventListener('DOMContentLoaded', (event) => {
-    // Custom expand/collapse module
-    const ExpandButton = Quill.import('ui/button');
-
-    class ExpandModule {
-        constructor(quill, options) {
-            this.quill = quill;
-            this.container = quill.container;
-            this.toolbar = quill.getModule('toolbar');
-            const button = document.createElement('span');
-            button.classList.add('ql-expand');
-            button.innerHTML = '<i class="fas fa-expand"></i>';
-            button.addEventListener('click', this.toggleEditorSize.bind(this));
-            this.toolbar.container.appendChild(button);
-        }
-
-        toggleEditorSize() {
-            const editorContainer = this.container.parentNode;
-            const buttonIcon = document.querySelector('.ql-expand i');
-            editorContainer.classList.toggle('expanded');
-            if (editorContainer.classList.contains('expanded')) {
-                buttonIcon.classList.remove('fa-expand');
-                buttonIcon.classList.add('fa-compress');
-            } else {
-                buttonIcon.classList.remove('fa-compress');
-                buttonIcon.classList.add('fa-expand');
-            }
-        }
-    }
-
-    Quill.register('modules/expand', ExpandModule);
-
     quill = new Quill('#quill-editor', {
-        theme: 'snow',
-        modules: {
-            toolbar: [
-                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                ['bold', 'italic', 'underline'],
-                ['link', 'image'],
-                [{ 'align': [] }],
-                ['clean']
-            ],
-            expand: true
-        }
+        theme: 'snow'
     });
-
     initFuse();
     loadLocalData();
     initCouchDBSync();
 });
-
 
 function initFuse() {
     fuse = new Fuse(notes, {
