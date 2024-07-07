@@ -10,7 +10,6 @@ let editingTaskId = null;
 let fuse;
 let quill;
 
-document.addEventListener('DOMContentLoaded', (event) => {
 // Ensure styles are correctly applied
 document.addEventListener('DOMContentLoaded', (event) => {
     quill = new Quill('#quill-editor', {
