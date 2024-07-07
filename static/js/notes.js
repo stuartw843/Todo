@@ -14,7 +14,7 @@ function initFuse() {
 
 function showPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-document.getElementById(`${page}-page`).classList.remove('hidden');
+    document.getElementById(`${page}-page`).classList.remove('hidden');
     if (page === 'notes') {
         displayNotes();
     } else if (page === 'tasks') {
@@ -246,5 +246,4 @@ async function deleteNote(id) {
         displayNotes();
         displayTasks();
     }
-                                    }
-            
+}
