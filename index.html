@@ -61,7 +61,10 @@
     <div id="note-modal" class="modal hidden" onclick="hideNoteForm()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <span class="close" onclick="hideNoteForm()">&times;</span>
-            <button id="toggle-size-button" onclick="toggleModalSize()">Expand</button>
+            <!-- Update the toggle button in the note modal -->
+<button id="toggle-size-button" onclick="toggleEditorSize()">
+    <i id="toggle-icon" class="fas fa-expand"></i>
+</button>
             <h3>New Note</h3>
             <input type="text" id="note-title" placeholder="Title"><br>
             <div id="quill-editor" style="height: 200px;"></div><br>
