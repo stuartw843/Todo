@@ -13,6 +13,96 @@
     <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuid.min.js"></script>
     <style>
         /* Include your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .task-done {
+            text-decoration: line-through;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            box-sizing: border-box;
+        }
+        .note, .task-card {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+        .note-content {
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+        .note-content:after {
+            content: '...';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            padding: 0 10px;
+            background: linear-gradient(to left, #f9f9f9, transparent);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #ccc;
+        }
+        .header .nav-links {
+            display: flex;
+            align-items: center;
+        }
+        .header .nav-links a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .header .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .header .action-buttons {
+            display: flex;
+            align-items: center;
+        }
+        .header .action-buttons button {
+            margin-right: 10px;
+        }
+        .search-container {
+            position: relative;
+        }
+        .search-container input[type="text"] {
+            padding-right: 30px;
+        }
+        .search-container .clear-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -119,11 +209,11 @@
             if (page === 'tasks') displayTasks();
         }
 
-        function displayNotes() {
+        function displayNotes(filteredNotes = notes) {
             const notesList = document.getElementById('notes-list');
             notesList.innerHTML = '';
-            notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-            notes.forEach(note => {
+            filteredNotes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            filteredNotes.forEach(note => {
                 const noteDiv = document.createElement('div');
                 noteDiv.classList.add('note');
                 noteDiv.innerHTML = `
@@ -144,7 +234,7 @@
         function searchNotes() {
             const searchTerm = document.getElementById('search-input').value;
             if (!searchTerm) {
-                displayNotes();
+                displayNotes(notes);
                 return;
             }
             const results = fuse.search(searchTerm);
@@ -209,7 +299,7 @@
             }
         }
 
-        function show        TaskForm(task) {
+        function showTaskForm(task) {
             document.getElementById('task-modal').classList.remove('hidden');
             if (task) {
                 document.getElementById('task-desc').value = task.description;
@@ -380,4 +470,4 @@
 </body>
 </html>
 
-      
+                    
