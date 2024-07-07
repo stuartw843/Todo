@@ -4,12 +4,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const templates = await response.text();
     document.getElementById('templates').innerHTML = templates;
 
+    // Initialize global variables
+    window.converter = new showdown.Converter();
+
     // Initialize components
     const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
     document.getElementById('header-container').appendChild(headerTemplate);
-
-    // Initialize global variables
-    window.converter = new showdown.Converter();
 
     showPage('notes');
     initFuse();
