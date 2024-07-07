@@ -15,8 +15,8 @@
 <body>
     <div class="header">
         <div class="nav-links">
-            <a onclick="showPage('notes')">Notes</a>
-            <a onclick="showPage('tasks')">Tasks</a>
+            <a href="#" onclick="showPage('notes')">Notes</a>
+            <a href="#" onclick="showPage('tasks')">Tasks</a>
         </div>
         <div class="action-buttons">
             <button onclick="showNoteForm()"><i class="fas fa-plus"></i> Note</button>
@@ -62,7 +62,7 @@
             <h3>New Note</h3>
             <input type="text" id="note-title" placeholder="Title"><br>
             <textarea id="note-content" placeholder="Content"></textarea><br>
-            <div id="note-tasks"></div>
+            <div id="note-tasks" class="scrollable-tasks"></div>
             <button onclick="addNoteTask()">Add Task</button><br>
             <button onclick="saveNote()">Save Note</button>
             <button onclick="hideNoteForm()">Cancel</button>
@@ -85,7 +85,7 @@
     </div>
 
     <div id="view-note-modal" class="modal hidden" onclick="hideViewNoteModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-content scrollable" onclick="event.stopPropagation()">
             <span class="close" onclick="hideViewNoteModal()">&times;</span>
             <h2 id="view-note-title"></h2>
             <div id="view-note-content" class="note-content full-content"></div>
