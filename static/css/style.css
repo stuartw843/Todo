@@ -171,10 +171,6 @@ button {
 .header .nav-links a:hover {
     text-decoration: underline;
 }
-.header .nav-links a.active {
-    text-decoration: underline;
-    color: #007BFF;
-}
 .header .action-buttons {
     display: flex;
     align-items: center;
@@ -185,6 +181,7 @@ button {
 .search-container {
     position: relative;
 }
+
 .search-container input[type="text"] {
     padding-right: 30px;
 }
