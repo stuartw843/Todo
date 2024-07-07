@@ -191,7 +191,7 @@ async function deleteNoteModal(id) {
     if (confirm("Are you sure you want to delete this note?")) {
         const note = notes.find(n => n._id === id);
         if (note) {
-            deletedItems.push({ _id: note._id, type: 'note', updatedAt: new Date().toISOString() });
+            deletedItems.push({ _id: note._id, type: 'note', updatedAt            : new Date().toISOString() });
             notes = notes.filter(n => n._id !== id);
             await db.remove(note);
             await db.put({ _id: note._id, _deleted: true });
@@ -204,7 +204,7 @@ async function deleteNoteModal(id) {
 }
 
 function displayTasks() {
-    const highImpactTasksList = document            .getElementById('high-impact-tasks');
+    const highImpactTasksList = document.getElementById('high-impact-tasks');
     const todoTasksList = document.getElementById('todo-tasks');
     const doneTasksList = document.getElementById('done-tasks');
 
@@ -427,7 +427,7 @@ function initCouchDBSync() {
     }).on('denied', (err) => {
         console.error('Replication denied', err);
         updateSyncStatus('offline');
-    }).on('complete', (info) => {
+        }).on('complete', (info) => {
         console.log('Replication complete', info);
     }).on('error', (err) => {
         console.error('Replication error', err);
@@ -437,7 +437,7 @@ function initCouchDBSync() {
 
 async function loadLocalData() {
     const allDocs = await db.allDocs({ include_docs: true });
-    notes = allDocs.rows.filter(doc =>         doc.doc.type === 'note').map(doc => doc.doc);
+    notes = allDocs.rows.filter(doc => doc.doc.type === 'note').map(doc => doc.doc);
     tasks = allDocs.rows.filter(doc => doc.doc.type === 'task').map(doc => doc.doc);
     deletedItems = allDocs.rows.filter(doc => doc.doc.type === 'deleted').map(doc => doc.doc);
     initFuse();
@@ -461,3 +461,5 @@ showPage('notes');
 initFuse();
 loadLocalData();
 initCouchDBSync();
+          
+                                                          
