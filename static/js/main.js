@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
     document.getElementById('header-container').appendChild(headerTemplate);
 
+    // Initialize global variables
+    window.converter = new showdown.Converter();
+
     showPage('notes');
     initFuse();
     loadLocalData();
