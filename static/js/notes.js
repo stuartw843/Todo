@@ -42,13 +42,13 @@ function displayNotes(filteredNotes = notes) {
 }
 
 function viewFullNotePage(note) {
+    const container = document.querySelector('.container');
+    container.innerHTML = '';
+
     const notePageTemplate = document.getElementById('note-full-page-template').content.cloneNode(true);
+    container.appendChild(notePageTemplate);
 
-    document.querySelector('.container').innerHTML = '';
-    document.querySelector('.container').appendChild(notePageTemplate);
-
-    const notePage = document.querySelector('.note-full-page');
-    notePage.__x = Alpine.data('notePage', () => ({
+    Alpine.data('notePage', () => ({
         noteTitle: note.title,
         noteContent: converter.makeHtml(note.content)
     }));
@@ -77,10 +77,12 @@ function viewFullNotePage(note) {
         }
     });
 
-    // Load the header dynamically
-    const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
-    document.getElementById('header-container').appendChild(headerTemplate);
-    initHeader();
+    // Load the header dynamically only if it does not exist
+    if (!document.getElementById('header-container').innerHTML) {
+        const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
+        document.getElementById('header-container').appendChild(headerTemplate);
+        initHeader();
+    }
 }
 
 function goBack() {
@@ -192,7 +194,7 @@ async function saveNote() {
         note.content = content;
         note.tasks = noteTasks;
         note.updatedAt = updatedAt;
-        note.source = 'local'
+        note.source = 'local';
         await db.put(note);
     } else {
         const note = {
@@ -247,5 +249,3 @@ async function deleteNote(id) {
         displayTasks();
     }
 }
-
-            
