@@ -204,5 +204,3 @@ async function deleteNote(id) {
         displayTasks();
     }
 }
-
-                
