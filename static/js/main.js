@@ -83,7 +83,7 @@ function searchNotes() {
     }
     const results = fuse.search(searchTerm);
     const filteredNotes = results.map(result => result.item);
-        displayNotes(filteredNotes);
+    displayNotes(filteredNotes);
 }
 
 function clearSearch() {
@@ -204,7 +204,7 @@ async function deleteNoteModal(id) {
 }
 
 function displayTasks() {
-    const highImpactTasksList = document.getElementById('high-impact-tasks');
+    const highImpactTasksList = document            .getElementById('high-impact-tasks');
     const todoTasksList = document.getElementById('todo-tasks');
     const doneTasksList = document.getElementById('done-tasks');
 
@@ -321,7 +321,7 @@ function editTask(id) {
 
 async function deleteTask(id) {
     const task = tasks.find(t => t._id === id);
-        if (task) {
+    if (task) {
         deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
         tasks = tasks.filter(t => t._id !== id);
         await db.remove(task);
@@ -437,7 +437,7 @@ function initCouchDBSync() {
 
 async function loadLocalData() {
     const allDocs = await db.allDocs({ include_docs: true });
-    notes = allDocs.rows.filter(doc => doc.doc.type === 'note').map(doc => doc.doc);
+    notes = allDocs.rows.filter(doc =>         doc.doc.type === 'note').map(doc => doc.doc);
     tasks = allDocs.rows.filter(doc => doc.doc.type === 'task').map(doc => doc.doc);
     deletedItems = allDocs.rows.filter(doc => doc.doc.type === 'deleted').map(doc => doc.doc);
     initFuse();
@@ -461,6 +461,3 @@ showPage('notes');
 initFuse();
 loadLocalData();
 initCouchDBSync();
-
-
-    
