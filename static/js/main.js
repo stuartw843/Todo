@@ -195,7 +195,7 @@ function addNoteTask(task) {
     taskDiv.dataset.id = task ? task._id : '';
     taskDiv.innerHTML = `
         <input type="text" class="task-desc" placeholder="Task description" value="${task ? task.description : ''}">
-        <input type="date"         class="task-due-date" value="${task ? task.dueDate : ''}">
+            <input type="date" class="task-due-date" value="${task ? task.dueDate : ''}">
         <select class="task-status">
             ${statuses.map(status => `<option value="${status}" ${task && task.status === status ? 'selected' : ''}>${status}</option>`).join('')}
         </select>
@@ -427,7 +427,8 @@ function initCouchDBSync() {
         auth: {
             username: couchdbUsername,
             password: couchdbPassword
-        });
+        }
+    });
 
     syncDataWithCouchDB();
     db.sync(remoteDb, {
@@ -482,4 +483,4 @@ initFuse();
 loadLocalData();
 initCouchDBSync();
 
-
+            
