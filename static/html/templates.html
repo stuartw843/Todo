@@ -2,8 +2,8 @@
 <template id="header-template">
     <div class="header">
         <div class="nav-links">
-            <a :class="{ 'active': page === 'notes' }" @click.prevent="page = 'notes'; showPage('notes')">Notes</a>
-            <a :class="{ 'active': page === 'tasks' }" @click.prevent="page = 'tasks'; showPage('tasks')">Tasks</a>
+            <a href="#notes" :class="{ 'active': page === 'notes' }" @click.prevent="page = 'notes'; showPage('notes')">Notes</a>
+            <a href="#tasks" :class="{ 'active': page === 'tasks' }" @click.prevent="page = 'tasks'; showPage('tasks')">Tasks</a>
         </div>
         <div class="action-buttons">
             <button @click="showNoteForm()"><i class="fas fa-plus"></i> Note</button>
