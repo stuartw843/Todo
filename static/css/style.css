@@ -134,7 +134,7 @@ button {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+        z-index: 1000;
 }
 .modal-content {
     background: white;
@@ -149,13 +149,16 @@ button {
 .modal-content .close {
     position: sticky;
     top: 0;
-    right: 0;
+    right: 10px;
     cursor: pointer;
     background: white;
     z-index: 10;
     padding: 10px;
 }
-
+.modal-content.expanded {
+    width: 90%;
+    height: 90%;
+}
 .scrollable {
     max-height: 80vh;
     overflow-y: auto;
