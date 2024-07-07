@@ -59,23 +59,24 @@
     </div>
 
     <div id="note-modal" class="modal hidden" onclick="hideNoteForm()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="close" onclick="hideNoteForm()">&times;</span>
-            
-            <h3>New Note</h3>
-            <input type="text" id="note-title" placeholder="Title"><br>
-            <div id="quill-editor" style="height: 200px;"></div><br>
-            <textarea id="note-content" placeholder="Content" class="hidden"></textarea><br>
-            <!-- Update the toggle button in the note modal -->
-<button id="toggle-size-button" onclick="toggleEditorSize()">
-    <i id="toggle-icon" class="fas fa-expand"></i>
-</button>
-            <div id="note-tasks" class="scrollable-tasks"></div>
-            <button onclick="addNoteTask()">Add Task</button><br>
-            <button onclick="saveNote()">Save Note</button>
-            <button onclick="hideNoteForm()">Cancel</button>
-        </div>
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close" onclick="hideNoteForm()">&times;</span>
+        <h3>New Note</h3>
+        <input type="text" id="note-title" placeholder="Title"><br>
+        <div id="quill-editor-container">
+            <button id="toggle-size-button" onclick="toggleEditorSize()">
+                <i id="toggle-icon" class="fas fa-expand"></i>
+            </button>
+            <div id="quill-editor" style="height: 200px;"></div>
+        </div><br>
+        <textarea id="note-content" placeholder="Content" class="hidden"></textarea><br>
+        <div id="note-tasks" class="scrollable-tasks"></div>
+        <button onclick="addNoteTask()">Add Task</button><br>
+        <button onclick="saveNote()">Save Note</button>
+        <button onclick="hideNoteForm()">Cancel</button>
     </div>
+</div>
+
 
     <div id="task-modal" class="modal hidden" onclick="hideTaskForm()">
         <div class="modal-content" onclick="event.stopPropagation()">
