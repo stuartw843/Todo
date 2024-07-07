@@ -292,6 +292,8 @@ button {
     z-index: 10;
 }
 
+
+
 @media (min-width: 600px) {
     .task-action-buttons button {
         width: 48%;
