@@ -83,7 +83,7 @@ function searchNotes() {
     }
     const results = fuse.search(searchTerm);
     const filteredNotes = results.map(result => result.item);
-    displayNotes(filteredNotes);
+        displayNotes(filteredNotes);
 }
 
 function clearSearch() {
@@ -116,7 +116,7 @@ function hideNoteForm() {
 async function saveNote() {
     const title = document.getElementById('note-title').value;
     const content = document.getElementById('note-content').value;
-    const taskElements = document.querySelectorAll('#note-ttasks .task');
+    const taskElements = document.querySelectorAll('#note-tasks .task');
     const noteTasks = [];
     for (const taskElement of taskElements) {
         const taskId = taskElement.dataset.id;
@@ -321,7 +321,7 @@ function editTask(id) {
 
 async function deleteTask(id) {
     const task = tasks.find(t => t._id === id);
-    if (task) {
+        if (task) {
         deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
         tasks = tasks.filter(t => t._id !== id);
         await db.remove(task);
@@ -461,4 +461,6 @@ showPage('notes');
 initFuse();
 loadLocalData();
 initCouchDBSync();
-        
+
+
+    
