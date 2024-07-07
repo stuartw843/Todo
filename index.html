@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes and Tasks App</title>
     <style>
+        /* Existing CSS code here */
         body {
             font-family: Arial, sans-serif;
             padding: 0;
@@ -286,6 +287,17 @@
         </div>
     </div>
 
+    <div id="view-note-modal" class="modal hidden" onclick="hideViewNoteModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="hideViewNoteModal()">&times;</span>
+            <h2 id="view-note-title"></h2>
+            <div id="view-note-content" class="note-content"></div>
+            <h3>Tasks</h3>
+            <div id="view-note-tasks"></div>
+            <button onclick="hideViewNoteModal()">Close</button>
+        </div>
+    </div>
+
     <script>
         let db = new PouchDB('notes_tasks');
         let remoteDb = null;
@@ -327,25 +339,19 @@
                     <h3>${note.title}</h3>
                     <div class="note-content">${converter.makeHtml(note.content)}</div>
                     <small>Updated: ${new Date(note.updatedAt).toLocaleString()}</small>
-                    <button class="task-button" onclick="editNote('${note._id}')"><i class="fas fa-edit"></i></button>
+                    <button class="task-button" onclick="editNoteModal('${note._id}')"><i class="fas fa-edit"></i></button>
                     <button class="task-button" onclick="deleteNote('${note._id}')"><i class="fas fa-trash"></i></button>
                 `;
-                noteDiv.addEventListener('click', () => viewFullNotePage(note));
+                noteDiv.addEventListener('click', () => viewNoteModal(note));
                 notesList.appendChild(noteDiv);
             });
         }
 
-        function viewFullNotePage(note) {
-            const notePage = document.createElement('div');
-            notePage.innerHTML = `
-                <h2>${note.title}</h2>
-                <div class="note-content">${converter.makeHtml(note.content)}</div>
-                <h3>Tasks</h3>
-                <div id="note-tasks-page"></div>
-                <button onclick="goBack()">Back</button>
-            `;
-            document.body.innerHTML = '';
-            document.body.appendChild(notePage);
+        function viewNoteModal(note) {
+            document.getElementById('view-note-title').innerText = note.title;
+            document.getElementById('view-note-content').innerHTML = converter.makeHtml(note.content);
+            const noteTasksDiv = document.getElementById('view-note-tasks');
+            noteTasksDiv.innerHTML = '';
             note.tasks.forEach(taskId => {
                 const task = tasks.find(t => t._id === taskId);
                 if (task) {
@@ -364,16 +370,14 @@
                             <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
                         </div>
                     `;
-                    document.getElementById('note-tasks-page').appendChild(taskDiv);
+                    noteTasksDiv.appendChild(taskDiv);
                 }
             });
+            document.getElementById('view-note-modal').classList.remove('hidden');
         }
 
-        function goBack() {
-            document.body.innerHTML = document.querySelector('.container').outerHTML;
-            initFuse();
-            loadLocalData();
-            initCouchDBSync();
+        function hideViewNoteModal() {
+            document.getElementById('view-note-modal').classList.add('hidden');
         }
 
         function searchNotes() {
@@ -483,7 +487,7 @@
             noteTasksDiv.appendChild(taskDiv);
         }
 
-        function editNote(id) {
+        function editNoteModal(id) {
             const note = notes.find(n => n._id === id);
             showNoteForm(note);
         }
@@ -493,15 +497,16 @@
             if (note) {
                 deletedItems.push({ _id: note._id, type: 'note', updatedAt: new Date().toISOString() });
                 notes = notes.filter(n => n._id !== id);
-                await db.remove(note);
+                await db.remove(note)
                 await db.put({ _id: note._id, _deleted: true });
                 syncDataWithCouchDB();
                 initFuse();
-                                displayNotes();
+                displayNotes();
                 displayTasks();
             }
         }
-function displayTasks() {
+
+        function displayTasks() {
             const highImpactTasksList = document.getElementById('high-impact-tasks');
             const todoTasksList = document.getElementById('todo-tasks');
             const doneTasksList = document.getElementById('done-tasks');
@@ -762,3 +767,7 @@ function displayTasks() {
     </script>
 </body>
 </html>
+
+                
+                                
+            
