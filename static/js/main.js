@@ -4,9 +4,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const templates = await response.text();
     document.getElementById('templates').innerHTML = templates;
 
-    // Initialize Alpine.js
-    Alpine.start();
-
     // Initialize components
     const headerTemplate = document.getElementById('header-template').content.cloneNode(true);
     document.getElementById('header-container').appendChild(headerTemplate);
@@ -17,6 +14,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCouchDBSync();
     initHeader();
     initTasks();
+
+    // Initialize Alpine.js after components are set up
+    Alpine.start();
 });
 
 function app() {
