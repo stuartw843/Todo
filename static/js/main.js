@@ -10,6 +10,21 @@ let editingTaskId = null;
 let fuse;
 let quill;
 
+function toggleEditorSize() {
+    const editorContainer = document.getElementById('quill-editor-container');
+    const toggleIcon = document.getElementById('toggle-icon');
+    const modalContent = document.querySelector('#note-modal .modal-content');
+    editorContainer.classList.toggle('expanded');
+    modalContent.classList.toggle('expanded-editor');
+    if (editorContainer.classList.contains('expanded')) {
+        toggleIcon.classList.remove('fa-expand');
+        toggleIcon.classList.add('fa-compress');
+    } else {
+        toggleIcon.classList.remove('fa-compress');
+        toggleIcon.classList.add('fa-expand');
+    }
+}
+
 // Ensure styles are correctly applied
 document.addEventListener('DOMContentLoaded', (event) => {
     quill = new Quill('#quill-editor', {
@@ -19,22 +34,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     loadLocalData();
     initCouchDBSync();
 });
-
-// Function to toggle the size of the text editor
-function toggleEditorSize() {
-    const editorContainer = document.querySelector('#quill-editor');
-    const toggleIcon = document.getElementById('toggle-icon');
-    editorContainer.classList.toggle('expanded');
-    if (editorContainer.classList.contains('expanded')) {
-        toggleIcon.classList.remove('fa-expand');
-        toggleIcon.classList.add('fa-compress');
-        editorContainer.style.height = '400px';
-    } else {
-        toggleIcon.classList.remove('fa-compress');
-        toggleIcon.classList.add('fa-expand');
-        editorContainer.style.height = '200px';
-    }
-}
 
 function initFuse() {
     fuse = new Fuse(notes, {
