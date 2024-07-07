@@ -40,6 +40,10 @@ textarea {
     padding: 0 10px;
     background: linear-gradient(to left, #f9f9f9, transparent);
 }
+.full-content {
+    max-height: none;
+    overflow: visible;
+}
 .task {
     display: flex;
     flex-direction: column;
@@ -141,7 +145,7 @@ button {
     position: relative;
 }
 .modal-content .close {
-    position: absolute;
+       position: absolute;
     top: 10px;
     right: 10px;
     cursor: pointer;
@@ -181,7 +185,6 @@ button {
 .search-container {
     position: relative;
 }
-
 .search-container input[type="text"] {
     padding-right: 30px;
 }
@@ -194,6 +197,11 @@ button {
     border: none;
     cursor: pointer;
     font-size: 16px;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    padding: 0;
 }
 @media (min-width: 600px) {
     .task-action-buttons button {
