@@ -8,6 +8,16 @@ let deletedItems = [];
 let editingNoteId = null;
 let editingTaskId = null;
 let fuse;
+let quill;
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    quill = new Quill('#quill-editor', {
+        theme: 'snow'
+    });
+    initFuse();
+    loadLocalData();
+    initCouchDBSync();
+});
 
 function initFuse() {
     fuse = new Fuse(notes, {
@@ -96,7 +106,7 @@ function showNoteForm(note) {
     document.getElementById('note-tasks').innerHTML = '';
     if (note) {
         document.getElementById('note-title').value = note.title;
-        document.getElementById('note-content').value = note.content;
+        quill.root.innerHTML = converter.makeHtml(note.content);
         note.tasks.forEach(taskId => {
             const task = tasks.find(t => t._id === taskId);
             if (task) addNoteTask(task);
@@ -104,7 +114,7 @@ function showNoteForm(note) {
         editingNoteId = note._id;
     } else {
         document.getElementById('note-title').value = '';
-        document.getElementById('note-content').value = '';
+        quill.root.innerHTML = '';
         editingNoteId = null;
     }
 }
@@ -113,9 +123,20 @@ function hideNoteForm() {
     document.getElementById('note-modal').classList.add('hidden');
 }
 
+function toggleModalSize() {
+    const modalContent = document.querySelector('#note-modal .modal-content');
+    const toggleButton = document.getElementById('toggle-size-button');
+    modalContent.classList.toggle('expanded');
+    if (modalContent.classList.contains('expanded')) {
+        toggleButton.textContent = 'Collapse';
+    } else {
+        toggleButton.textContent = 'Expand';
+    }
+}
+
 async function saveNote() {
     const title = document.getElementById('note-title').value;
-    const content = document.getElementById('note-content').value;
+    const content = quill.root.innerHTML;
     const taskElements = document.querySelectorAll('#note-tasks .task');
     const noteTasks = [];
     for (const taskElement of taskElements) {
@@ -174,7 +195,7 @@ function addNoteTask(task) {
     taskDiv.dataset.id = task ? task._id : '';
     taskDiv.innerHTML = `
         <input type="text" class="task-desc" placeholder="Task description" value="${task ? task.description : ''}">
-        <input type="date" class="task-due-date" value="${task ? task.dueDate : ''}">
+        <input type="date"         class="task-due-date" value="${task ? task.dueDate : ''}">
         <select class="task-status">
             ${statuses.map(status => `<option value="${status}" ${task && task.status === status ? 'selected' : ''}>${status}</option>`).join('')}
         </select>
@@ -191,7 +212,7 @@ async function deleteNoteModal(id) {
     if (confirm("Are you sure you want to delete this note?")) {
         const note = notes.find(n => n._id === id);
         if (note) {
-            deletedItems.push({ _id: note._id, type: 'note', updatedAt            : new Date().toISOString() });
+            deletedItems.push({ _id: note._id, type: 'note', updatedAt: new Date().toISOString() });
             notes = notes.filter(n => n._id !== id);
             await db.remove(note);
             await db.put({ _id: note._id, _deleted: true });
@@ -406,8 +427,7 @@ function initCouchDBSync() {
         auth: {
             username: couchdbUsername,
             password: couchdbPassword
-        }
-    });
+        });
 
     syncDataWithCouchDB();
     db.sync(remoteDb, {
@@ -427,7 +447,7 @@ function initCouchDBSync() {
     }).on('denied', (err) => {
         console.error('Replication denied', err);
         updateSyncStatus('offline');
-        }).on('complete', (info) => {
+    }).on('complete', (info) => {
         console.log('Replication complete', info);
     }).on('error', (err) => {
         console.error('Replication error', err);
@@ -461,5 +481,5 @@ showPage('notes');
 initFuse();
 loadLocalData();
 initCouchDBSync();
-          
-                                                          
+
+
