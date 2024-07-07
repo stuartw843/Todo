@@ -192,7 +192,7 @@ async function saveNote() {
         note.content = content;
         note.tasks = noteTasks;
         note.updatedAt = updatedAt;
-        note.source = 'local';
+        note.source = 'local'
         await db.put(note);
     } else {
         const note = {
@@ -247,3 +247,5 @@ async function deleteNote(id) {
         displayTasks();
     }
 }
+
+            
