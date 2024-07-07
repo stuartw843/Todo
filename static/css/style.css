@@ -247,6 +247,16 @@ button {
     position: relative;
 }
 
+#toggle-size-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+}
+
 #quill-editor-container.expanded {
     position: fixed;
     top: 10%;
@@ -265,6 +275,17 @@ button {
     height: calc(100% - 40px); /* Adjust for padding and button height */
 }
 
+.modal-content .expanded-editor {
+    position: fixed;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+    background: white;
+    z-index: 1001;
+    overflow: hidden;
+}
+
 #quill-editor-container .ql-toolbar.ql-snow {
     position: sticky;
     top: 0;
@@ -272,9 +293,6 @@ button {
     z-index: 10;
 }
 
-.ql-expand {
-    cursor: pointer;
-}
 
 
 @media (min-width: 600px) {
