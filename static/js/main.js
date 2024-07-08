@@ -316,10 +316,6 @@ function displayTasks() {
                 <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
                 ${task.noteId ? `<span class="related-note">Note: ${notes.find(n => n._id === task.noteId)?.title || ''}</span>` : ''}
             </div>
-            <div class="task-action-buttons">
-                ${task.status === 'Todo' ? '<button class="task-button" onclick="changeTaskStatus(\'' + task._id + '\', \'High Impact\')">^ High Impact</button>' : ''}
-                ${task.status === 'High Impact' ? '<button class="task-button" onclick="changeTaskStatus(\'' + task._id + '\', \'Todo\')">v Todo</button>' : ''}
-            </div>
         `;
         list.appendChild(taskDiv);
     };
@@ -328,6 +324,7 @@ function displayTasks() {
     tasks.filter(task => task.status === 'Todo').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, todoTasksList));
     tasks.filter(task => task.status === 'Done').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, doneTasksList));
 }
+    
 
 
 async function changeTaskStatus(taskId, newStatus) {
