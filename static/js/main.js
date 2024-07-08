@@ -294,8 +294,7 @@ function displayTasks() {
     todoTasksList.innerHTML = '';
     doneTasksList.innerHTML = '';
 
-    tasks.forEach(task => {
-        if (!task) return;  // Skip if task is undefined
+    const renderTask = (task, list) => {
         const taskDiv = document.createElement('div');
         taskDiv.classList.add('task-card');
         taskDiv.dataset.id = task._id;
@@ -317,16 +316,14 @@ function displayTasks() {
                 ${task.status === 'High Impact' ? '<button class="task-button" onclick="changeTaskStatus(\'' + task._id + '\', \'Todo\')">v Todo</button>' : ''}
             </div>
         `;
+        list.appendChild(taskDiv);
+    };
 
-        if (task.isDone) {
-            doneTasksList.appendChild(taskDiv);
-        } else if (task.status === 'High Impact') {
-            highImpactTasksList.appendChild(taskDiv);
-        } else if (task.status === 'Todo') {
-            todoTasksList.appendChild(taskDiv);
-        }
-    });
+    tasks.filter(task => task.status === 'High Impact').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, highImpactTasksList));
+    tasks.filter(task => task.status === 'Todo').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, todoTasksList));
+    tasks.filter(task => task.status === 'Done').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, doneTasksList));
 }
+
 
 async function changeTaskStatus(taskId, newStatus) {
     const task = tasks.find(t => t._id === taskId);
