@@ -204,18 +204,20 @@ async function saveNote() {
             noteTasks.push(taskId);
         } else {
             const task = {
-                _id: uuid.v4(),
-                description: taskElement.querySelector('.task-desc').value,
-                isDone: false,
-                dueDate: taskElement.querySelector('.task-due-date').value,
-                status: taskElement.querySelector('.task-status').value,
-                updatedAt: new Date().toISOString(),
-                source: 'local',
-                type: 'task'
-            };
-            tasks.push(task);
+    _id: uuid.v4(),
+    description,
+    isDone: false,
+    dueDate,
+    status,
+    order: tasks.filter(t => t.status === status).length,
+    updatedAt,
+    source: 'local',
+    type: 'task'
+};
+tasks.push(task);
+await db.put(task);
             noteTasks.push(task._id);
-            await db.put(task);
+            
         }
     }
     const updatedAt = new Date().toISOString();
