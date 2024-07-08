@@ -1,9 +1,9 @@
 const CACHE_NAME = 'notes-tasks-app-cache-v1';
 const urlsToCache = [
     '/',
-    '/index.html',
-    '/static/css/style.css',
-    '/static/js/main.js',
+    'index.html',
+    'static/css/style.css',
+    'static/js/main.js',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
     'https://cdn.quilljs.com/1.3.6/quill.snow.css',
     'https://cdn.quilljs.com/1.3.6/quill.min.js',
