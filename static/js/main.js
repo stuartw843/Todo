@@ -49,8 +49,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 // Function to update task order in the database
 async function updateTaskOrder(event) {
-    const listId = event.from.id;
-async function updateTaskOrder(event) {
     const fromListId = event.from.id;
     const toListId = event.to.id;
     const newOrder = [...event.to.children].map(child => child.dataset.id);
