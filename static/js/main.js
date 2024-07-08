@@ -50,25 +50,29 @@ document.addEventListener('DOMContentLoaded', (event) => {
 // Function to update task order in the database
 async function updateTaskOrder(event) {
     const listId = event.from.id;
-    const newOrder = [...event.from.children].map(child => child.dataset.id);
+async function updateTaskOrder(event) {
+    const fromListId = event.from.id;
+    const toListId = event.to.id;
+    const newOrder = [...event.to.children].map(child => child.dataset.id);
 
-    // Update the task order in the database
-    if (listId === 'high-impact-tasks') {
-        tasks.filter(task => task.status === 'High Impact').forEach((task, index) => {
-            task.order = newOrder.indexOf(task._id);
-        });
-    } else if (listId === 'todo-tasks') {
-        tasks.filter(task => task.status === 'Todo').forEach((task, index) => {
-            task.order = newOrder.indexOf(task._id);
-        });
-    } else if (listId === 'done-tasks') {
-        tasks.filter(task => task.status === 'Done').forEach((task, index) => {
-            task.order = newOrder.indexOf(task._id);
-        });
+    // Determine the new status based on the target list
+    let newStatus;
+    if (toListId === 'high-impact-tasks') {
+        newStatus = 'High Impact';
+    } else if (toListId === 'todo-tasks') {
+        newStatus = 'Todo';
+    } else if (toListId === 'done-tasks') {
+        newStatus = 'Done';
     }
 
-    // Save tasks to the database
-    for (const task of tasks) {
+    // Update the task order and status
+    for (let i = 0; i < newOrder.length; i++) {
+        const taskId = newOrder[i];
+        const task = tasks.find(t => t._id === taskId);
+        task.order = i;
+        task.status = newStatus;
+        task.updatedAt = new Date().toISOString();
+        task.source = 'local';
         await db.put(task);
     }
 
@@ -76,6 +80,7 @@ async function updateTaskOrder(event) {
     loadLocalData();
     displayTasks();
 }
+    
 
 
 function initFuse() {
