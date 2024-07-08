@@ -25,7 +25,6 @@ function toggleEditorSize() {
     }
 }
 
-// Ensure styles are correctly applied
 document.addEventListener('DOMContentLoaded', (event) => {
     quill = new Quill('#quill-editor', {
         theme: 'snow'
@@ -33,7 +32,51 @@ document.addEventListener('DOMContentLoaded', (event) => {
     initFuse();
     loadLocalData();
     initCouchDBSync();
+
+    // Initialize Sortable for each task list
+    const highImpactTasks = document.getElementById('high-impact-tasks');
+    const todoTasks = document.getElementById('todo-tasks');
+    const doneTasks = document.getElementById('done-tasks');
+
+    [highImpactTasks, todoTasks, doneTasks].forEach(list => {
+        new Sortable(list, {
+            group: 'tasks',
+            animation: 150,
+            onEnd: updateTaskOrder
+        });
+    });
 });
+
+// Function to update task order in the database
+async function updateTaskOrder(event) {
+    const listId = event.from.id;
+    const newOrder = [...event.from.children].map(child => child.dataset.id);
+
+    // Update the task order in the database
+    if (listId === 'high-impact-tasks') {
+        tasks.filter(task => task.status === 'High Impact').forEach((task, index) => {
+            task.order = newOrder.indexOf(task._id);
+        });
+    } else if (listId === 'todo-tasks') {
+        tasks.filter(task => task.status === 'Todo').forEach((task, index) => {
+            task.order = newOrder.indexOf(task._id);
+        });
+    } else if (listId === 'done-tasks') {
+        tasks.filter(task => task.status === 'Done').forEach((task, index) => {
+            task.order = newOrder.indexOf(task._id);
+        });
+    }
+
+    // Save tasks to the database
+    for (const task of tasks) {
+        await db.put(task);
+    }
+
+    // Re-fetch and display tasks to ensure correct order
+    loadLocalData();
+    displayTasks();
+}
+
 
 function initFuse() {
     fuse = new Fuse(notes, {
