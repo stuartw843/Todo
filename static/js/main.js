@@ -219,20 +219,19 @@ function toggleModalSize() {
 async function saveNote() {
     const title = document.getElementById('note-title').value;
     const content = quill.root.innerHTML;
-    const taskElements = document.querySelectorAll('#note-tasks .task');
+    const taskElements = document.querySelectorAll('#note-tasks .task-item');
     const noteTasks = [];
     
     for (const taskElement of taskElements) {
         const taskId = taskElement.dataset.id;
-        if (taskId) {
-            noteTasks.push(taskId);
-        } else {
-            const description = taskElement.querySelector('.task-desc').value;
-            const dueDate = taskElement.querySelector('.task-due-date').value;
-            const status = taskElement.querySelector('.task-status').value;
-            
-            const task = {
-                _id: uuid.v4(),
+        const description = taskElement.querySelector('.task-desc').value;
+        const dueDate = taskElement.querySelector('.task-due-date').value;
+        const status = taskElement.querySelector('.task-status').value;
+        
+        let task = tasks.find(t => t._id === taskId);
+        if (!task) {
+            task = {
+                _id: taskId,
                 description,
                 isDone: false,
                 dueDate,
@@ -242,9 +241,15 @@ async function saveNote() {
                 type: 'task'
             };
             tasks.push(task);
-            noteTasks.push(task._id);
-            await db.put(task);
+        } else {
+            task.description = description;
+            task.dueDate = dueDate;
+            task.status = status;
+            task.updatedAt = new Date().toISOString();
+            task.source = 'local';
         }
+        noteTasks.push(task._id);
+        await db.put(task);
     }
 
     const updatedAt = new Date().toISOString();
@@ -277,19 +282,29 @@ async function saveNote() {
 }
 
 
-function addNoteTask(task) {
+function addNoteTask(task = {}) {
     const noteTasksDiv = document.getElementById('note-tasks');
+    const taskId = task._id || uuid.v4();
     const taskDiv = document.createElement('div');
-    taskDiv.classList.add('task');
-    taskDiv.dataset.id = task ? task._id : '';
+    taskDiv.classList.add('task-item');
+    taskDiv.dataset.id = taskId;
     taskDiv.innerHTML = `
-        <input type="text" class="task-desc" placeholder="Task description" value="${task ? task.description : ''}">
-            <input type="date" class="task-due-date" value="${task ? task.dueDate : ''}">
+        <input type="text" class="task-desc" placeholder="Task description" value="${task.description || ''}">
+        <input type="date" class="task-due-date" value="${task.dueDate || ''}">
         <select class="task-status">
-            ${statuses.map(status => `<option value="${status}" ${task && task.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+            ${statuses.map(status => `<option value="${status}" ${task.status === status ? 'selected' : ''}>${status}</option>`).join('')}
         </select>
+        <button onclick="removeNoteTask('${taskId}', event)"><i class="fas fa-trash"></i></button>
     `;
     noteTasksDiv.appendChild(taskDiv);
+}
+
+function removeNoteTask(taskId, event) {
+    event.stopPropagation();
+    const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
+    if (taskElement) {
+        taskElement.remove();
+    }
 }
 
 function editNoteModal(id) {
