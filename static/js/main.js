@@ -319,7 +319,7 @@ function displayTasks() {
         taskDiv.dataset.id = task._id;
         taskDiv.innerHTML = `
             <div class="task-header">
-                <div class="task-handle">☰</div> <!-- Add a handle element -->
+                <div class="task-handle">☰</div>
                 <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone('${task._id}')">
                 <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                 <div class="task-buttons">
