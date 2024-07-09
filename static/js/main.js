@@ -33,12 +33,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
     loadLocalData();
     initCouchDBSync();
 
-    // Initialize Sortable for each task list with handle option
+    // Initialize Sortable for each task list excluding "Done"
     const highImpactTasks = document.getElementById('high-impact-tasks');
     const todoTasks = document.getElementById('todo-tasks');
-    const doneTasks = document.getElementById('done-tasks');
 
-    [highImpactTasks, todoTasks, doneTasks].forEach(list => {
+    [highImpactTasks, todoTasks].forEach(list => {
         new Sortable(list, {
             group: 'tasks',
             handle: '.task-handle', // Specify the handle for dragging
@@ -61,8 +60,6 @@ async function updateTaskOrder(event) {
         newStatus = 'High Impact';
     } else if (toListId === 'todo-tasks') {
         newStatus = 'Todo';
-    } else if (toListId === 'done-tasks') {
-        newStatus = 'Done';
     }
 
     // Update the task order and status
@@ -96,6 +93,7 @@ async function updateTaskOrder(event) {
     await loadLocalData();
     displayTasks();
 }
+
 
 function initFuse() {
     fuse = new Fuse(notes, {
@@ -217,28 +215,32 @@ async function saveNote() {
     const content = quill.root.innerHTML;
     const taskElements = document.querySelectorAll('#note-tasks .task');
     const noteTasks = [];
+    
     for (const taskElement of taskElements) {
         const taskId = taskElement.dataset.id;
         if (taskId) {
             noteTasks.push(taskId);
         } else {
-            const task = {
-    _id: uuid.v4(),
-    description,
-    isDone: false,
-    dueDate,
-    status,
-    order: tasks.filter(t => t.status === status).length,
-    updatedAt,
-    source: 'local',
-    type: 'task'
-};
-tasks.push(task);
-await db.put(task);
-            noteTasks.push(task._id);
+            const description = taskElement.querySelector('.task-desc').value;
+            const dueDate = taskElement.querySelector('.task-due-date').value;
+            const status = taskElement.querySelector('.task-status').value;
             
+            const task = {
+                _id: uuid.v4(),
+                description,
+                isDone: false,
+                dueDate,
+                status,
+                updatedAt: new Date().toISOString(),
+                source: 'local',
+                type: 'task'
+            };
+            tasks.push(task);
+            noteTasks.push(task._id);
+            await db.put(task);
         }
     }
+
     const updatedAt = new Date().toISOString();
     if (editingNoteId) {
         const note = notes.find(n => n._id === editingNoteId);
@@ -267,6 +269,7 @@ await db.put(task);
     displayNotes();
     displayTasks();
 }
+
 
 function addNoteTask(task) {
     const noteTasksDiv = document.getElementById('note-tasks');
@@ -422,11 +425,18 @@ async function toggleTaskDone(id) {
     const task = tasks.find(t => t._id === id);
     task.isDone = !task.isDone;
     task.updatedAt = new Date().toISOString();
+    task.status = task.isDone ? 'Done' : 'Todo'; // Update status based on done state
     task.source = 'local';
-    await db.put(task);
-    syncDataWithCouchDB();
+
+    try {
+        await db.put(task);
+    } catch (error) {
+        console.error('Failed to update the document:', error);
+    }
+
+    // Re-fetch and display tasks to ensure correct order
+    await loadLocalData();
     displayTasks();
-    displayNotes();
 }
 
 async function deleteAllNotesAndTasks() {
