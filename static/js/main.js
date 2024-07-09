@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     loadLocalData();
     initCouchDBSync();
 
-    // Initialize Sortable for each task list
+    // Initialize Sortable for each task list with handle option
     const highImpactTasks = document.getElementById('high-impact-tasks');
     const todoTasks = document.getElementById('todo-tasks');
     const doneTasks = document.getElementById('done-tasks');
@@ -41,11 +41,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
     [highImpactTasks, todoTasks, doneTasks].forEach(list => {
         new Sortable(list, {
             group: 'tasks',
+            handle: '.task-handle', // Specify the handle for dragging
             animation: 150,
             onEnd: updateTaskOrder
         });
     });
 });
+
 
 // Function to update task order in the database
 async function updateTaskOrder(event) {
@@ -317,6 +319,7 @@ function displayTasks() {
         taskDiv.dataset.id = task._id;
         taskDiv.innerHTML = `
             <div class="task-header">
+                <div class="task-handle">☰</div> <!-- Add a handle element -->
                 <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone('${task._id}')">
                 <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                 <div class="task-buttons">
@@ -357,8 +360,6 @@ async function deleteTask(id, event) {
         displayNotes();
     }
 }
-
-
 
 async function changeTaskStatus(taskId, newStatus) {
     const task = tasks.find(t => t._id === taskId);
