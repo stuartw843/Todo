@@ -19,7 +19,7 @@ textarea {
     height: 100px;
     box-sizing: border-box;
 }
-.note, .task-card {
+.note {
     border: 1px solid #ccc;
     padding: 10px;
     margin-bottom: 10px;
@@ -294,6 +294,45 @@ button {
 
 #quill-editor-container.expanded #quill-editor {
     height: calc(100% - 40px); /* Adjust for padding and button height */
+}
+
+.task-header {
+    display: flex;
+    align-items: center;
+}
+
+.task-handle {
+    cursor: grab;
+    font-size: 1.5em;
+    margin-right: 10px;
+    user-select: none; /* Prevent text selection on handle */
+}
+
+.task-title {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.task-buttons {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.task-card {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+
+.task-details {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
 }
 
 @media (min-width: 600px) {
