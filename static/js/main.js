@@ -145,10 +145,15 @@ function viewNoteModal(note) {
             taskDiv.dataset.id = task._id;
             taskDiv.innerHTML = `
                 <div class="task-header">
+                    <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone('${task._id}')">
                     <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
+                    <div class="task-buttons">
+                        <button class="task-button" onclick="editTask('${task._id}', event);"><i class="fas fa-edit"></i></button>
+                        <button class="task-button" onclick="deleteTask('${task._id}', event);"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>
                 <div class="task-details">
-                    <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                    ${task.dueDate ? `<span>${new Date(task.dueDate).toLocaleDateString()}</span>` : ''}
                 </div>
             `;
             noteTasksDiv.appendChild(taskDiv);
@@ -156,6 +161,7 @@ function viewNoteModal(note) {
     });
     document.getElementById('view-note-modal').classList.remove('hidden');
 }
+
 
 function hideViewNoteModal() {
     document.getElementById('view-note-modal').classList.add('hidden');
@@ -331,7 +337,7 @@ function displayTasks() {
                 </div>
             </div>
             <div class="task-details">
-                <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+                ${task.dueDate ? `<span>${new Date(task.dueDate).toLocaleDateString()}</span>` : ''}
                 ${task.noteId ? `<span class="related-note">Note: ${notes.find(n => n._id === task.noteId)?.title || ''}</span>` : ''}
             </div>
         `;
