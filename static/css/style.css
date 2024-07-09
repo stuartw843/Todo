@@ -44,6 +44,31 @@ textarea {
     max-height: none;
     overflow: visible;
 }
+
+#note-modal .task-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#note-modal .task-item input[type="text"] {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+#note-modal .task-item input[type="date"],
+#note-modal .task-item select,
+#note-modal .task-item button {
+    margin-right: 10px;
+}
+
+#note-modal .task-item button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: red;
+}
+
 .task {
     display: flex;
     flex-direction: column;
