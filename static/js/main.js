@@ -320,8 +320,8 @@ function displayTasks() {
                 <input type="checkbox" ${task.isDone ? 'checked' : ''} onclick="toggleTaskDone('${task._id}')">
                 <span class="task-title ${task.isDone ? 'task-done' : ''}">${task.description}</span>
                 <div class="task-buttons">
-                    <button class="task-button" onclick="editTask('${task._id}'); event.stopPropagation();"><i class="fas fa-edit"></i></button>
-                    <button class="task-button" onclick="deleteTask('${task._id}'); event.stopPropagation();"><i class="fas fa-trash"></i></button>
+                    <button class="task-button" onclick="editTask('${task._id}', event);"><i class="fas fa-edit"></i></button>
+                    <button class="task-button" onclick="deleteTask('${task._id}', event);"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
             <div class="task-details">
@@ -336,7 +336,28 @@ function displayTasks() {
     tasks.filter(task => task.status === 'Todo').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, todoTasksList));
     tasks.filter(task => task.status === 'Done').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, doneTasksList));
 }
-    
+
+// Ensure that event.stopPropagation() is called within the editTask and deleteTask functions
+function editTask(id, event) {
+    event.stopPropagation();
+    const task = tasks.find(t => t._id === id);
+    showTaskForm(task);
+}
+
+async function deleteTask(id, event) {
+    event.stopPropagation();
+    const task = tasks.find(t => t._id === id);
+    if (task) {
+        deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
+        tasks = tasks.filter(t => t._id !== id);
+        await db.remove(task);
+        await db.put({ _id: task._id, _deleted: true });
+        syncDataWithCouchDB();
+        displayTasks();
+        displayNotes();
+    }
+}
+
 
 
 async function changeTaskStatus(taskId, newStatus) {
@@ -405,24 +426,6 @@ async function toggleTaskDone(id) {
     syncDataWithCouchDB();
     displayTasks();
     displayNotes();
-}
-
-function editTask(id) {
-    const task = tasks.find(t => t._id === id);
-    showTaskForm(task);
-}
-
-async function deleteTask(id) {
-    const task = tasks.find(t => t._id === id);
-    if (task) {
-        deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
-        tasks = tasks.filter(t => t._id !== id);
-        await db.remove(task);
-        await db.put({ _id: task._id, _deleted: true });
-        syncDataWithCouchDB();
-        displayTasks();
-        displayNotes();
-    }
 }
 
 async function deleteAllNotesAndTasks() {
