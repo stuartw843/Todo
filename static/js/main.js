@@ -66,21 +66,34 @@ async function updateTaskOrder(event) {
     // Update the task order and status
     for (let i = 0; i < newOrder.length; i++) {
         const taskId = newOrder[i];
-        const task = tasks.find(t => t._id === taskId);
+        let task = tasks.find(t => t._id === taskId);
+
+        // Fetch the latest revision of the document
+        try {
+            const latestDoc = await db.get(taskId);
+            task = { ...task, ...latestDoc };
+        } catch (error) {
+            console.error('Failed to fetch the latest document revision:', error);
+            continue;
+        }
+
         task.order = i;
         task.status = newStatus;
         task.updatedAt = new Date().toISOString();
         task.source = 'local';
-        await db.put(task);
+
+        // Attempt to update the document
+        try {
+            await db.put(task);
+        } catch (error) {
+            console.error('Failed to update the document:', error);
+        }
     }
 
     // Re-fetch and display tasks to ensure correct order
     await loadLocalData();
     displayTasks();
 }
-    
-    
-
 
 function initFuse() {
     fuse = new Fuse(notes, {
