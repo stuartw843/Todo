@@ -654,10 +654,11 @@ function populateSnapshotDropdown() {
     snapshots.forEach(snapshot => {
         const option = document.createElement('option');
         option.value = snapshot.timestamp;
-        option.text = snapshot.timestamp;
+        option.text = new Date(snapshot.timestamp).toLocaleString();
         snapshotSelect.appendChild(option);
     });
 }
+
 
 async function restoreSnapshot() {
     const snapshotSelect = document.getElementById('snapshot-select');
@@ -806,7 +807,9 @@ function createSnapshot() {
     }
 
     localStorage.setItem('snapshots', JSON.stringify(snapshots));
+    populateSnapshotDropdown(); // Refresh the dropdown
 }
+
 
 function updateSnapshot() {
     const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
