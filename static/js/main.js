@@ -36,18 +36,22 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         }
     });
+
+    quill.on('text-change', () => {
+        autoSaveNote();
+    });
+
     initFuse();
     loadLocalData();
     initCouchDBSync();
 
-    // Initialize Sortable for each task list excluding "Done"
     const highImpactTasks = document.getElementById('high-impact-tasks');
     const todoTasks = document.getElementById('todo-tasks');
 
     [highImpactTasks, todoTasks].forEach(list => {
         new Sortable(list, {
             group: 'tasks',
-            handle: '.task-handle', // Specify the handle for dragging
+            handle: '.task-handle',
             animation: 150,
             onEnd: updateTaskOrder
         });
@@ -222,6 +226,86 @@ function toggleModalSize() {
     } else {
         toggleButton.textContent = 'Expand';
     }
+}
+
+let autoSaveTimeout;
+async function autoSaveNote() {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(async () => {
+        const title = document.getElementById('note-title').value.trim();
+        const content = quill.root.innerHTML.trim();
+        const taskElements = document.querySelectorAll('#note-tasks .task-item');
+        const noteTasks = [];
+
+        // Don't save blank notes
+        if (!title && !content) {
+            return;
+        }
+
+        for (const taskElement of taskElements) {
+            const taskId = taskElement.dataset.id;
+            const description = taskElement.querySelector('.task-desc').value.trim();
+            const dueDate = taskElement.querySelector('.task-due-date').value;
+            const status = taskElement.querySelector('.task-status').value;
+
+            // Don't save blank tasks
+            if (!description) {
+                continue;
+            }
+
+            let task = tasks.find(t => t._id === taskId);
+            if (!task) {
+                task = {
+                    _id: taskId,
+                    description,
+                    isDone: false,
+                    dueDate,
+                    status,
+                    updatedAt: new Date().toISOString(),
+                    source: 'local',
+                    type: 'task'
+                };
+                tasks.push(task);
+            } else {
+                task.description = description;
+                task.dueDate = dueDate;
+                task.status = status;
+                task.updatedAt = new Date().toISOString();
+                task.source = 'local';
+                delete task._deleted;
+            }
+            noteTasks.push(task._id);
+            await db.put(task);
+        }
+
+        const updatedAt = new Date().toISOString();
+        let note;
+        if (editingNoteId) {
+            note = notes.find(n => n._id === editingNoteId);
+            note.title = title;
+            note.content = content;
+            note.tasks = noteTasks;
+            note.updatedAt = updatedAt;
+            note.source = 'local';
+        } else {
+            note = {
+                _id: uuid.v4(),
+                title,
+                content,
+                tasks: noteTasks,
+                updatedAt,
+                source: 'local',
+                type: 'note'
+            };
+            notes.push(note);
+            editingNoteId = note._id; // Set editingNoteId to the newly created note's ID
+        }
+        await db.put(note);
+        syncDataWithCouchDB();
+        initFuse();
+        displayNotes();
+        displayTasks();
+    }, 1000); // Save after 1 second of inactivity
 }
 
 async function saveNote() {
