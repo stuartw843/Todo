@@ -313,8 +313,6 @@ button {
 }
 
 #quill-editor-container .custom_button {
-    position: absolute;
-    top: 10px;
     cursor: pointer;
     border: none;
     background: none;
