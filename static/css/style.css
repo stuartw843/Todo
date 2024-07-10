@@ -282,10 +282,10 @@ button {
 
 #quill-editor-container.expanded {
     position: fixed;
-    top: 10%;
-    left: 10%;
-    width: 80%;
-    height: 80%;
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
     background: white;
     z-index: 1000;
     padding: 10px;
@@ -295,7 +295,7 @@ button {
 }
 
 #quill-editor-container.expanded #quill-editor {
-    height: calc(100% - 40px); /* Adjust for padding and button height */
+    height: 90% !important; /* Adjust for padding and button height */
 }
 
 .modal-content .expanded-editor {
