@@ -334,8 +334,10 @@ async function deleteNoteModal(id) {
     if (confirm("Are you sure you want to delete this note?")) {
         const note = notes.find(n => n._id === id);
         if (note) {
-            // Find and delete all tasks associated with this note
+            // Find all tasks associated with this note
             const tasksToDelete = tasks.filter(task => note.tasks.includes(task._id));
+
+            // Delete each associated task from the database and tasks array
             for (const task of tasksToDelete) {
                 await db.remove(task);
                 tasks = tasks.filter(t => t._id !== task._id);
@@ -345,7 +347,6 @@ async function deleteNoteModal(id) {
             deletedItems.push({ _id: note._id, type: 'note', updatedAt: new Date().toISOString() });
             notes = notes.filter(n => n._id !== id);
             await db.remove(note);
-            await db.put({ _id: note._id, _deleted: true });
 
             syncDataWithCouchDB();
             initFuse();
