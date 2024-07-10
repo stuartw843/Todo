@@ -73,6 +73,8 @@
             <button id="toggle-size-button" onclick="toggleEditorSize()">
                 <i id="toggle-icon" class="fas fa-expand"></i>
             </button>
+            <button onclick="quill.history.undo()"><i class="fas fa-undo"></i></button>
+            <button onclick="quill.history.redo()"><i class="fas fa-redo"></i></button>
             <div id="quill-editor" style="height: 200px;"></div>
         </div><br>
         <div id="note-tasks" class="scrollable-tasks"></div>
