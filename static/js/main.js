@@ -379,6 +379,7 @@ async function removeNoteTask(taskId, event) {
     if (taskElement) {
         taskElement.remove();
     }
+
     // Mark the task for deletion if it exists in the tasks array
     const taskIndex = tasks.findIndex(t => t._id === taskId);
     if (taskIndex > -1) {
@@ -391,6 +392,7 @@ async function removeNoteTask(taskId, event) {
     }
     autoSaveNote(); // Trigger auto-save after removing a task
 }
+
 
 
 
