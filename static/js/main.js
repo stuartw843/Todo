@@ -767,18 +767,23 @@ function createSnapshot() {
         deletedItems,
         timestamp: new Date().toISOString()
     };
-    const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
-    snapshots.push(snapshot);
-    localStorage.setItem('snapshots', JSON.stringify(snapshots));
+    let snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
 
     // Clean up old snapshots (older than 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     snapshots = snapshots.filter(snapshot => new Date(snapshot.timestamp) > sevenDaysAgo);
 
-    snapshots.push(snapshot);
+    // Replace or add the snapshot for today
+    const today = new Date().toISOString().split('T')[0];
+    const todaySnapshotIndex = snapshots.findIndex(s => s.timestamp.split('T')[0] === today);
+    if (todaySnapshotIndex >= 0) {
+        snapshots[todaySnapshotIndex] = snapshot;
+    } else {
+        snapshots.push(snapshot);
+    }
+
     localStorage.setItem('snapshots', JSON.stringify(snapshots));
-    
 }
 
 function updateSnapshot() {
