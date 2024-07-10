@@ -270,15 +270,7 @@ button {
     position: relative;
 }
 
-#toggle-size-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    z-index: 100;
-}
+
 
 #quill-editor-container.expanded {
     position: fixed;
@@ -318,6 +310,27 @@ button {
 
 #quill-editor-container.expanded #quill-editor {
     height: calc(100% - 40px); /* Adjust for padding and button height */
+}
+
+#quill-editor-container button {
+    position: absolute;
+    top: 10px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 18px;
+}
+
+#toggle-size-button {
+    right: 40px; /* Adjust this based on your layout */
+}
+
+#quill-editor-container .fa-undo {
+    right: 70px; /* Adjust this based on your layout */
+}
+
+#quill-editor-container .fa-redo {
+    right: 100px; /* Adjust this based on your layout */
 }
 
 .task-header {
