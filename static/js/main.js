@@ -331,7 +331,7 @@ async function autoSaveNote() {
         initFuse();
         displayNotes();
         displayTasks();
-        updateSnapshot(); // Update snapshot after saving
+        createSnapshot(); // Update snapshot after saving
     }, 1000); // Save after 1 second of inactivity
 }
 
