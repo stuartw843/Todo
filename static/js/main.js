@@ -346,90 +346,9 @@ async function autoSaveNote() {
         initFuse();
         displayNotes();
         displayTasks();
-        createSnapshot(); // Update snapshot after saving
+        updateSnapshot(); // Update snapshot after saving
     }, 1000); // Save after 1 second of inactivity
 }
-
-        
-
-async function saveNote() {
-    const title = document.getElementById('note-title').value;
-    const content = quill.root.innerHTML;
-    const taskElements = document.querySelectorAll('#note-tasks .task-item');
-    const noteTasks = [];
-    
-    // Create a list to store tasks that need to be deleted from the database
-    const tasksToDelete = tasks.filter(task => task._deleted);
-
-    // Handle tasks currently present in the note
-    for (const taskElement of taskElements) {
-        const taskId = taskElement.dataset.id;
-        const description = taskElement.querySelector('.task-desc').value;
-        const dueDate = taskElement.querySelector('.task-due-date').value;
-        const status = taskElement.querySelector('.task-status').value;
-
-        let task = tasks.find(t => t._id === taskId);
-        if (!task) {
-            task = {
-                _id: taskId,
-                description,
-                isDone: false,
-                dueDate,
-                status,
-                updatedAt: new Date().toISOString(),
-                source: 'local',
-                type: 'task'
-            };
-            tasks.push(task);
-        } else {
-            task.description = description;
-            task.dueDate = dueDate;
-            task.status = status;
-            task.updatedAt = new Date().toISOString();
-            task.source = 'local';
-            delete task._deleted; // Ensure the task is not marked for deletion
-        }
-        noteTasks.push(task._id);
-        await db.put(task);
-    }
-
-    // Delete tasks that were marked for deletion
-    for (const task of tasksToDelete) {
-        await db.remove(task);
-        tasks = tasks.filter(t => t._id !== task._id);
-    }
-
-    const updatedAt = new Date().toISOString();
-    if (editingNoteId) {
-        const note = notes.find(n => n._id === editingNoteId);
-        note.title = title;
-        note.content = content;
-        note.tasks = noteTasks;
-        note.updatedAt = updatedAt;
-        note.source = 'local';
-        await db.put(note);
-    } else {
-        const note = {
-            _id: uuid.v4(),
-            title,
-            content,
-            tasks: noteTasks,
-            updatedAt,
-            source: 'local',
-            type: 'note'
-        };
-        notes.push(note);
-        await db.put(note);
-    }
-    syncDataWithCouchDB();
-    initFuse();
-    hideNoteForm();
-    displayNotes();
-    displayTasks();
-    createSnapshot(); // Update snapshot after saving
-}
-
-
 
 function addNoteTask(task = {}) {
     const noteTasksDiv = document.getElementById('note-tasks');
@@ -454,7 +373,7 @@ function addNoteTask(task = {}) {
 }
 
 
-function removeNoteTask(taskId, event) {
+async function removeNoteTask(taskId, event) {
     event.stopPropagation();
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
     if (taskElement) {
@@ -463,10 +382,16 @@ function removeNoteTask(taskId, event) {
     // Mark the task for deletion if it exists in the tasks array
     const taskIndex = tasks.findIndex(t => t._id === taskId);
     if (taskIndex > -1) {
-        tasks[taskIndex]._deleted = true;
+        try {
+            const task = await db.get(taskId); // Fetch the latest revision
+            tasks[taskIndex] = { ...tasks[taskIndex], _deleted: true, _rev: task._rev };
+        } catch (error) {
+            console.error('Error fetching latest task revision:', error);
+        }
     }
     autoSaveNote(); // Trigger auto-save after removing a task
 }
+
 
 
 function editNoteModal(id) {
