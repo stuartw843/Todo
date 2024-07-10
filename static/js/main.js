@@ -550,24 +550,31 @@ async function saveTask() {
     createSnapshot(); // Update snapshot after saving
 }
 
-async function toggleTaskDone(id) {
-    const task = tasks.find(t => t._id === id);
-    task.isDone = !task.isDone;
-    task.updatedAt = new Date().toISOString();
-    task.status = task.isDone ? 'Done' : 'Todo'; // Update status based on done state
-    task.source = 'local';
-
+async function toggleTaskDone(taskId) {
     try {
+        // Fetch the latest task revision
+        const task = await db.get(taskId);
+        task.isDone = !task.isDone;
+        task.updatedAt = new Date().toISOString();
+        task.source = 'local';
+        
+        // Save the updated task
         await db.put(task);
-    } catch (error) {
-        console.error('Failed to update the document:', error);
-    }
 
-    // Re-fetch and display tasks to ensure correct order
-    await loadLocalData();
-    displayTasks();
-    createSnapshot(); // Update snapshot after saving
+        // Update the local tasks array
+        const taskIndex = tasks.findIndex(t => t._id === taskId);
+        if (taskIndex > -1) {
+            tasks[taskIndex] = task;
+        }
+        
+        // Update the UI
+        displayTasks();
+        displayNotes();
+    } catch (error) {
+        console.error('Failed to update the task:', error);
+    }
 }
+
 
 async function deleteAllNotesAndTasks() {
     if (confirm("Are you sure you want to delete all notes and tasks? This action cannot be undone.")) {
