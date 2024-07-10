@@ -518,16 +518,22 @@ function editTask(id, event) {
 
 async function deleteTask(id, event) {
     event.stopPropagation();
-    const task = tasks.find(t => t._id === id);
-    if (task) {
-        deletedItems.push({ _id: task._id, type: 'task', updatedAt: new Date().toISOString() });
-        tasks = tasks.filter(t => t._id !== id);
+    try {
+        // Fetch the latest revision of the task
+        const task = await db.get(id);
+        
+        // Mark the task for deletion
         await db.remove(task);
-        await db.put({ _id: task._id, _deleted: true });
+        
+        // Remove the task from the local tasks array
+        tasks = tasks.filter(t => t._id !== id);
+
+        // Sync and update UI
         syncDataWithCouchDB();
         displayTasks();
         displayNotes();
-        createSnapshot(); // Update snapshot after saving
+    } catch (error) {
+        console.error('Failed to delete the task:', error);
     }
 }
 
