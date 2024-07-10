@@ -817,18 +817,6 @@ function createSnapshot() {
 }
 
 
-
-function createSnapshot() {
-    const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
-    const latestSnapshot = snapshots[snapshots.length - 1];
-    const today = new Date().toISOString().split('T')[0];
-
-    if (!latestSnapshot || latestSnapshot.timestamp.split('T')[0] !== today) {
-        createSnapshot();
-    }
-}
-
-
 // Initial setup
 showPage('notes');
 initFuse();
