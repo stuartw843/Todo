@@ -92,6 +92,7 @@ async function updateTaskOrder(event) {
     // Re-fetch and display tasks to ensure correct order
     await loadLocalData();
     displayTasks();
+    updateSnapshot(); // Update snapshot after saving
 }
 
 
@@ -290,6 +291,7 @@ async function saveNote() {
     hideNoteForm();
     displayNotes();
     displayTasks();
+    updateSnapshot(); // Update snapshot after saving
 }
 
 
@@ -352,6 +354,7 @@ async function deleteNoteModal(id) {
             initFuse();
             displayNotes();
             displayTasks();
+            updateSnapshot(); // Update snapshot after saving
         }
     }
 }
@@ -411,6 +414,7 @@ async function deleteTask(id, event) {
         syncDataWithCouchDB();
         displayTasks();
         displayNotes();
+        updateSnapshot(); // Update snapshot after saving
     }
 }
 
@@ -423,6 +427,7 @@ async function changeTaskStatus(taskId, newStatus) {
         await db.put(task);
         syncDataWithCouchDB();
         displayTasks();
+        updateSnapshot(); // Update snapshot after saving
     }
 }
 
@@ -469,6 +474,7 @@ async function saveTask() {
     hideTaskForm();
     displayTasks();
     displayNotes();
+    updateSnapshot(); // Update snapshot after saving
 }
 
 async function toggleTaskDone(id) {
@@ -487,6 +493,7 @@ async function toggleTaskDone(id) {
     // Re-fetch and display tasks to ensure correct order
     await loadLocalData();
     displayTasks();
+    updateSnapshot(); // Update snapshot after saving
 }
 
 async function deleteAllNotesAndTasks() {
@@ -506,10 +513,12 @@ async function deleteAllNotesAndTasks() {
         syncDataWithCouchDB();
         displayNotes();
         displayTasks();
+        updateSnapshot(); // Update snapshot after saving
     }
 }
 
 function showSettings() {
+    populateSnapshotDropdown();
     document.getElementById('settings-page').classList.remove('hidden');
 }
 
@@ -524,6 +533,43 @@ function saveSettings() {
     initCouchDBSync();
     hideSettings();
 }
+
+function populateSnapshotDropdown() {
+    const snapshotSelect = document.getElementById('snapshot-select');
+    snapshotSelect.innerHTML = '';
+    const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
+    snapshots.forEach(snapshot => {
+        const option = document.createElement('option');
+        option.value = snapshot.timestamp;
+        option.text = snapshot.timestamp;
+        snapshotSelect.appendChild(option);
+    });
+}
+
+async function restoreSnapshot() {
+    const snapshotSelect = document.getElementById('snapshot-select');
+    const timestamp = snapshotSelect.value;
+    const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
+    const snapshot = snapshots.find(s => s.timestamp === timestamp);
+
+    if (snapshot) {
+        notes = snapshot.notes;
+        tasks = snapshot.tasks;
+        deletedItems = snapshot.deletedItems;
+
+        // Save the restored data to the database
+        await db.bulkDocs([...notes, ...tasks, ...deletedItems]);
+
+        syncDataWithCouchDB();
+        initFuse();
+        displayNotes();
+        displayTasks();
+        alert('Snapshot restored successfully!');
+    } else {
+        alert('Failed to restore snapshot.');
+    }
+}
+
 
 function updateSyncStatus(status) {
     const syncStatus = document.getElementById('sync-status');
@@ -622,6 +668,29 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
+
+function createSnapshot() {
+    const snapshot = {
+        notes,
+        tasks,
+        deletedItems,
+        timestamp: new Date().toISOString()
+    };
+    const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
+    snapshots.push(snapshot);
+    localStorage.setItem('snapshots', JSON.stringify(snapshots));
+}
+
+function updateSnapshot() {
+    const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
+    const latestSnapshot = snapshots[snapshots.length - 1];
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!latestSnapshot || latestSnapshot.timestamp.split('T')[0] !== today) {
+        createSnapshot();
+    }
+}
+
 
 // Initial setup
 showPage('notes');
