@@ -229,6 +229,7 @@ function toggleModalSize() {
 }
 
 let autoSaveTimeout;
+let autoSaveTimeout;
 async function autoSaveNote() {
     clearTimeout(autoSaveTimeout);
     autoSaveTimeout = setTimeout(async () => {
@@ -274,8 +275,19 @@ async function autoSaveNote() {
                 task.source = 'local';
                 delete task._deleted;
             }
+            // Fetch the latest revision before saving
+            try {
+                const latestTask = await db.get(task._id);
+                task._rev = latestTask._rev;
+            } catch (error) {
+                console.error('Error fetching latest task revision:', error);
+            }
             noteTasks.push(task._id);
-            await db.put(task);
+            try {
+                await db.put(task);
+            } catch (error) {
+                console.error('Error saving task:', error);
+            }
         }
 
         const updatedAt = new Date().toISOString();
@@ -287,6 +299,13 @@ async function autoSaveNote() {
             note.tasks = noteTasks;
             note.updatedAt = updatedAt;
             note.source = 'local';
+            // Fetch the latest revision before saving
+            try {
+                const latestNote = await db.get(note._id);
+                note._rev = latestNote._rev;
+            } catch (error) {
+                console.error('Error fetching latest note revision:', error);
+            }
         } else {
             note = {
                 _id: uuid.v4(),
@@ -300,14 +319,18 @@ async function autoSaveNote() {
             notes.push(note);
             editingNoteId = note._id; // Set editingNoteId to the newly created note's ID
         }
-        await db.put(note);
+        try {
+            await db.put(note);
+        } catch (error) {
+            console.error('Error saving note:', error);
+        }
         syncDataWithCouchDB();
         initFuse();
         displayNotes();
         displayTasks();
+        updateSnapshot(); // Update snapshot after saving
     }, 1000); // Save after 1 second of inactivity
 }
-
 async function saveNote() {
     const title = document.getElementById('note-title').value;
     const content = quill.root.innerHTML;
