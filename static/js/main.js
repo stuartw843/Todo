@@ -34,8 +34,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 maxStack: 500,
                 userOnly: true
             },
-            markdownShortcuts: {},
-            autoformat: {}
         }
     });
 
