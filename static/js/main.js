@@ -33,7 +33,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 delay: 2000,
                 maxStack: 500,
                 userOnly: true
-            }
+            },
+            markdownShortcuts: {},
+            autoformat: {}
         }
     });
 
@@ -57,7 +59,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
-
 
 // Function to update task order in the database
 async function updateTaskOrder(event) {
@@ -279,7 +280,9 @@ async function autoSaveNote() {
                 const latestTask = await db.get(task._id);
                 task._rev = latestTask._rev;
             } catch (error) {
-                console.error('Error fetching latest task revision:', error);
+                if (error.status !== 404) {
+                    console.error('Error fetching latest task revision:', error);
+                }
             }
             noteTasks.push(task._id);
             try {
@@ -303,7 +306,9 @@ async function autoSaveNote() {
                 const latestNote = await db.get(note._id);
                 note._rev = latestNote._rev;
             } catch (error) {
-                console.error('Error fetching latest note revision:', error);
+                if (error.status !== 404) {
+                    console.error('Error fetching latest note revision:', error);
+                }
             }
         } else {
             note = {
@@ -327,9 +332,10 @@ async function autoSaveNote() {
         initFuse();
         displayNotes();
         displayTasks();
-        createSnapshot(); // Update snapshot after saving
+        updateSnapshot(); // Update snapshot after saving
     }, 1000); // Save after 1 second of inactivity
 }
+
 async function saveNote() {
     const title = document.getElementById('note-title').value;
     const content = quill.root.innerHTML;
@@ -424,6 +430,11 @@ function addNoteTask(task = {}) {
         <button onclick="removeNoteTask('${taskId}', event)"><i class="fas fa-trash"></i></button>
     `;
     noteTasksDiv.appendChild(taskDiv);
+
+    // Add event listeners to trigger auto-save
+    taskDiv.querySelector('.task-desc').addEventListener('input', autoSaveNote);
+    taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
+    taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
 }
 
 function removeNoteTask(taskId, event) {
@@ -437,6 +448,7 @@ function removeNoteTask(taskId, event) {
     if (taskIndex > -1) {
         tasks[taskIndex]._deleted = true;
     }
+    autoSaveNote(); // Trigger auto-save after removing a task
 }
 
 
