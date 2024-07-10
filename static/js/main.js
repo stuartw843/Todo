@@ -26,6 +26,9 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
+    Quill.register('modules/markdownShortcuts', QuillMarkdownShortcuts.default);
+    Quill.register('modules/autoformat', QuillAutoFormat.default);
+
     quill = new Quill('#quill-editor', {
         theme: 'snow',
         modules: {
@@ -59,6 +62,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
+
 
 // Function to update task order in the database
 async function updateTaskOrder(event) {
