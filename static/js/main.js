@@ -214,6 +214,7 @@ function showNoteForm(note) {
 }
 
 function hideNoteForm() {
+    autoSaveNote();
     document.getElementById('note-modal').classList.add('hidden');
 }
 
@@ -227,7 +228,6 @@ function toggleModalSize() {
         toggleButton.textContent = 'Expand';
     }
 }
-
 let autoSaveTimeout;
 async function autoSaveNote() {
     clearTimeout(autoSaveTimeout);
@@ -263,7 +263,8 @@ async function autoSaveNote() {
                     status,
                     updatedAt: new Date().toISOString(),
                     source: 'local',
-                    type: 'task'
+                    type: 'task',
+                    noteId: editingNoteId // Set noteId for new tasks
                 };
                 tasks.push(task);
             } else {
@@ -272,8 +273,10 @@ async function autoSaveNote() {
                 task.status = status;
                 task.updatedAt = new Date().toISOString();
                 task.source = 'local';
+                task.noteId = editingNoteId; // Update noteId for existing tasks
                 delete task._deleted;
             }
+
             // Fetch the latest revision before saving
             try {
                 const latestTask = await db.get(task._id);
@@ -283,6 +286,7 @@ async function autoSaveNote() {
                     console.error('Error fetching latest task revision:', error);
                 }
             }
+
             noteTasks.push(task._id);
             try {
                 await db.put(task);
@@ -290,6 +294,17 @@ async function autoSaveNote() {
                 console.error('Error saving task:', error);
             }
         }
+
+        // Handle tasks marked for deletion
+        const tasksToDelete = tasks.filter(t => t._deleted);
+        for (const task of tasksToDelete) {
+            try {
+                await db.remove(task);
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
+        }
+        tasks = tasks.filter(t => !t._deleted);
 
         const updatedAt = new Date().toISOString();
         let note;
@@ -334,6 +349,8 @@ async function autoSaveNote() {
         createSnapshot(); // Update snapshot after saving
     }, 1000); // Save after 1 second of inactivity
 }
+
+        
 
 async function saveNote() {
     const title = document.getElementById('note-title').value;
@@ -435,6 +452,7 @@ function addNoteTask(task = {}) {
     taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
 }
+
 
 function removeNoteTask(taskId, event) {
     event.stopPropagation();
