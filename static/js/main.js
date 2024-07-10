@@ -174,6 +174,38 @@ function viewNoteModal(note) {
     document.getElementById('view-note-modal').classList.remove('hidden');
 }
 
+function displayNoteTasks(noteId) {
+    const note = notes.find(n => n._id === noteId);
+    if (!note) return;
+
+    const noteTasksDiv = document.getElementById('note-tasks');
+    noteTasksDiv.innerHTML = ''; // Clear existing tasks
+
+    note.tasks.forEach(taskId => {
+        const task = tasks.find(t => t._id === taskId);
+        if (task && !task._deleted) {
+            const taskDiv = document.createElement('div');
+            taskDiv.classList.add('task-item');
+            taskDiv.dataset.id = task._id;
+            taskDiv.innerHTML = `
+                <input type="text" class="task-desc" placeholder="Task description" value="${task.description}">
+                <input type="date" class="task-due-date" value="${task.dueDate}">
+                <select class="task-status">
+                    ${statuses.map(status => `<option value="${status}" ${task.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+                </select>
+                <button onclick="removeNoteTask('${task._id}', event)"><i class="fas fa-trash"></i></button>
+            `;
+            noteTasksDiv.appendChild(taskDiv);
+
+            // Add event listeners to trigger auto-save
+            taskDiv.querySelector('.task-desc').addEventListener('input', autoSaveNote);
+            taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
+            taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
+        }
+    });
+}
+
+
 
 function hideViewNoteModal() {
     document.getElementById('view-note-modal').classList.add('hidden');
@@ -214,8 +246,10 @@ function showNoteForm(note) {
 }
 
 function hideNoteForm() {
-    autoSaveNote();
-    document.getElementById('note-modal').classList.add('hidden');
+    autoSaveNote().then(() => {
+        displayNoteTasks(editingNoteId); // Ensure the tasks are updated before closing
+        document.getElementById('note-modal').classList.add('hidden');
+    });
 }
 
 function toggleModalSize() {
@@ -228,6 +262,7 @@ function toggleModalSize() {
         toggleButton.textContent = 'Expand';
     }
 }
+
 let autoSaveTimeout;
 async function autoSaveNote() {
     clearTimeout(autoSaveTimeout);
@@ -277,16 +312,6 @@ async function autoSaveNote() {
                 delete task._deleted;
             }
 
-            // Fetch the latest revision before saving
-            try {
-                const latestTask = await db.get(task._id);
-                task._rev = latestTask._rev;
-            } catch (error) {
-                if (error.status !== 404) {
-                    console.error('Error fetching latest task revision:', error);
-                }
-            }
-
             noteTasks.push(task._id);
             try {
                 await db.put(task);
@@ -299,9 +324,16 @@ async function autoSaveNote() {
         const tasksToDelete = tasks.filter(t => t._deleted);
         for (const task of tasksToDelete) {
             try {
+                const latestTask = await db.get(task._id);
+                if (latestTask._deleted) {
+                    continue; // Skip already deleted tasks
+                }
+                task._rev = latestTask._rev;
                 await db.remove(task);
             } catch (error) {
-                console.error('Error deleting task:', error);
+                if (error.status !== 404) {
+                    console.error('Error deleting task:', error);
+                }
             }
         }
         tasks = tasks.filter(t => !t._deleted);
@@ -350,6 +382,7 @@ async function autoSaveNote() {
     }, 1000); // Save after 1 second of inactivity
 }
 
+
 function addNoteTask(task = {}) {
     const noteTasksDiv = document.getElementById('note-tasks');
     const taskId = task._id || uuid.v4();
@@ -371,6 +404,7 @@ function addNoteTask(task = {}) {
     taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
 }
+
 async function removeNoteTask(taskId, event) {
     event.stopPropagation();
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
@@ -389,10 +423,8 @@ async function removeNoteTask(taskId, event) {
         }
     }
     await autoSaveNote(); // Trigger auto-save after removing a task
-    displayTasks(); // Refresh the task list
+    displayNoteTasks(editingNoteId); // Refresh the task list in the modal
 }
-
-
 
 
 function editNoteModal(id) {
