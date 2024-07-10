@@ -27,7 +27,14 @@ function toggleEditorSize() {
 
 document.addEventListener('DOMContentLoaded', (event) => {
     quill = new Quill('#quill-editor', {
-        theme: 'snow'
+        theme: 'snow',
+        modules: {
+            history: {
+                delay: 2000,
+                maxStack: 500,
+                userOnly: true
+            }
+        }
     });
     initFuse();
     loadLocalData();
@@ -679,6 +686,15 @@ function createSnapshot() {
     const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
     snapshots.push(snapshot);
     localStorage.setItem('snapshots', JSON.stringify(snapshots));
+
+    // Clean up old snapshots (older than 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    snapshots = snapshots.filter(snapshot => new Date(snapshot.timestamp) > sevenDaysAgo);
+
+    snapshots.push(snapshot);
+    localStorage.setItem('snapshots', JSON.stringify(snapshots));
+    
 }
 
 function updateSnapshot() {
