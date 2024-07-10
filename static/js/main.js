@@ -221,13 +221,14 @@ async function saveNote() {
     const content = quill.root.innerHTML;
     const taskElements = document.querySelectorAll('#note-tasks .task-item');
     const noteTasks = [];
-    
+    const deletedTasks = tasks.filter(t => t._deleted); // Find tasks marked for deletion
+
     for (const taskElement of taskElements) {
         const taskId = taskElement.dataset.id;
         const description = taskElement.querySelector('.task-desc').value;
         const dueDate = taskElement.querySelector('.task-due-date').value;
         const status = taskElement.querySelector('.task-status').value;
-        
+
         let task = tasks.find(t => t._id === taskId);
         if (!task) {
             task = {
@@ -247,9 +248,16 @@ async function saveNote() {
             task.status = status;
             task.updatedAt = new Date().toISOString();
             task.source = 'local';
+            delete task._deleted; // Ensure the task is not marked for deletion
         }
         noteTasks.push(task._id);
         await db.put(task);
+    }
+
+    // Delete tasks marked for deletion
+    for (const task of deletedTasks) {
+        await db.remove(task);
+        tasks = tasks.filter(t => t._id !== task._id);
     }
 
     const updatedAt = new Date().toISOString();
@@ -304,6 +312,11 @@ function removeNoteTask(taskId, event) {
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
     if (taskElement) {
         taskElement.remove();
+    }
+    // Mark the task for deletion if it exists in the tasks array
+    const taskIndex = tasks.findIndex(t => t._id === taskId);
+    if (taskIndex > -1) {
+        tasks[taskIndex]._deleted = true;
     }
 }
 
