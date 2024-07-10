@@ -229,7 +229,6 @@ function toggleModalSize() {
 }
 
 let autoSaveTimeout;
-let autoSaveTimeout;
 async function autoSaveNote() {
     clearTimeout(autoSaveTimeout);
     autoSaveTimeout = setTimeout(async () => {
