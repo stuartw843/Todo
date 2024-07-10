@@ -312,7 +312,7 @@ button {
     height: calc(100% - 40px); /* Adjust for padding and button height */
 }
 
-#quill-editor-container button {
+#quill-editor-container .custom_button {
     position: absolute;
     top: 10px;
     cursor: pointer;
