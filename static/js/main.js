@@ -221,8 +221,11 @@ async function saveNote() {
     const content = quill.root.innerHTML;
     const taskElements = document.querySelectorAll('#note-tasks .task-item');
     const noteTasks = [];
-    const deletedTasks = tasks.filter(t => t._deleted); // Find tasks marked for deletion
+    
+    // Create a list to store tasks that need to be deleted from the database
+    const tasksToDelete = tasks.filter(task => task._deleted);
 
+    // Handle tasks currently present in the note
     for (const taskElement of taskElements) {
         const taskId = taskElement.dataset.id;
         const description = taskElement.querySelector('.task-desc').value;
@@ -254,8 +257,8 @@ async function saveNote() {
         await db.put(task);
     }
 
-    // Delete tasks marked for deletion
-    for (const task of deletedTasks) {
+    // Delete tasks that were marked for deletion
+    for (const task of tasksToDelete) {
         await db.remove(task);
         tasks = tasks.filter(t => t._id !== task._id);
     }
@@ -290,6 +293,7 @@ async function saveNote() {
 }
 
 
+
 function addNoteTask(task = {}) {
     const noteTasksDiv = document.getElementById('note-tasks');
     const taskId = task._id || uuid.v4();
@@ -319,6 +323,7 @@ function removeNoteTask(taskId, event) {
         tasks[taskIndex]._deleted = true;
     }
 }
+
 
 function editNoteModal(id) {
     const note = notes.find(n => n._id === id);
