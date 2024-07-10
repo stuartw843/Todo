@@ -103,7 +103,7 @@ async function updateTaskOrder(event) {
     // Re-fetch and display tasks to ensure correct order
     await loadLocalData();
     displayTasks();
-    updateSnapshot(); // Update snapshot after saving
+    createSnapshot(); // Update snapshot after saving
 }
 
 
@@ -327,7 +327,7 @@ async function autoSaveNote() {
         initFuse();
         displayNotes();
         displayTasks();
-        updateSnapshot(); // Update snapshot after saving
+        createSnapshot(); // Update snapshot after saving
     }, 1000); // Save after 1 second of inactivity
 }
 async function saveNote() {
@@ -404,7 +404,7 @@ async function saveNote() {
     hideNoteForm();
     displayNotes();
     displayTasks();
-    updateSnapshot(); // Update snapshot after saving
+    createSnapshot(); // Update snapshot after saving
 }
 
 
@@ -467,7 +467,7 @@ async function deleteNoteModal(id) {
             initFuse();
             displayNotes();
             displayTasks();
-            updateSnapshot(); // Update snapshot after saving
+            createSnapshot(); // Update snapshot after saving
         }
     }
 }
@@ -527,7 +527,7 @@ async function deleteTask(id, event) {
         syncDataWithCouchDB();
         displayTasks();
         displayNotes();
-        updateSnapshot(); // Update snapshot after saving
+        createSnapshot(); // Update snapshot after saving
     }
 }
 
@@ -540,7 +540,7 @@ async function changeTaskStatus(taskId, newStatus) {
         await db.put(task);
         syncDataWithCouchDB();
         displayTasks();
-        updateSnapshot(); // Update snapshot after saving
+        createSnapshot(); // Update snapshot after saving
     }
 }
 
@@ -587,7 +587,7 @@ async function saveTask() {
     hideTaskForm();
     displayTasks();
     displayNotes();
-    updateSnapshot(); // Update snapshot after saving
+    createSnapshot(); // Update snapshot after saving
 }
 
 async function toggleTaskDone(id) {
@@ -606,7 +606,7 @@ async function toggleTaskDone(id) {
     // Re-fetch and display tasks to ensure correct order
     await loadLocalData();
     displayTasks();
-    updateSnapshot(); // Update snapshot after saving
+    createSnapshot(); // Update snapshot after saving
 }
 
 async function deleteAllNotesAndTasks() {
@@ -626,7 +626,7 @@ async function deleteAllNotesAndTasks() {
         syncDataWithCouchDB();
         displayNotes();
         displayTasks();
-        updateSnapshot(); // Update snapshot after saving
+        createSnapshot(); // Update snapshot after saving
     }
 }
 
@@ -811,7 +811,8 @@ function createSnapshot() {
 }
 
 
-function updateSnapshot() {
+
+function createSnapshot() {
     const snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
     const latestSnapshot = snapshots[snapshots.length - 1];
     const today = new Date().toISOString().split('T')[0];
