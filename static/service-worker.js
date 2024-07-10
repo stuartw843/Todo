@@ -1,4 +1,4 @@
-const CACHE_NAME = 'notes-tasks-app-cache-v3';
+const CACHE_NAME = 'notes-tasks-app-cache-v4';
 const urlsToCache = [
     '/',
     'index.html',
