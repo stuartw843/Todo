@@ -371,8 +371,6 @@ function addNoteTask(task = {}) {
     taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
 }
-
-
 async function removeNoteTask(taskId, event) {
     event.stopPropagation();
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
@@ -390,7 +388,8 @@ async function removeNoteTask(taskId, event) {
             console.error('Error fetching latest task revision:', error);
         }
     }
-    autoSaveNote(); // Trigger auto-save after removing a task
+    await autoSaveNote(); // Trigger auto-save after removing a task
+    displayTasks(); // Refresh the task list
 }
 
 
