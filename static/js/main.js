@@ -26,6 +26,7 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
+    // Initialize Quill editor
     quill = new Quill('#quill-editor', {
         theme: 'snow',
         modules: {
@@ -37,9 +38,22 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
     });
 
-    quill.on('text-change', () => {
-        autoSaveNote();
-    });
+    // Use MutationObserver to detect changes in the editor
+    const editorContainer = document.getElementById('quill-editor-container');
+    const config = { childList: true, subtree: true };
+    
+    const callback = function(mutationsList, observer) {
+        for (let mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+                console.log('A child node has been added or removed.');
+                // Call your function that was previously triggered by DOMNodeInserted
+                autoSaveNote();
+            }
+        }
+    };
+
+    const observer = new MutationObserver(callback);
+    observer.observe(editorContainer, config);
 
     initFuse();
     loadLocalData();
@@ -57,7 +71,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
-
 async function updateTaskOrder(event) {
     const fromListId = event.from.id;
     const toListId = event.to.id;
