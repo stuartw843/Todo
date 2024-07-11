@@ -26,34 +26,20 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    // Initialize Quill editor
-    quill = new Quill('#quill-editor', {
-        theme: 'snow',
-        modules: {
-            history: {
-                delay: 2000,
-                maxStack: 500,
-                userOnly: true
-            },
-        }
-    });
-
-    // Use MutationObserver to detect changes in the editor
-    const editorContainer = document.getElementById('quill-editor-container');
-    const config = { childList: true, subtree: true };
-    
-    const callback = function(mutationsList, observer) {
-        for (let mutation of mutationsList) {
-            if (mutation.type === 'childList') {
-                console.log('A child node has been added or removed.');
-                // Call your function that was previously triggered by DOMNodeInserted
+    tinymce.init({
+        selector: '#tinymce-editor',
+        plugins: 'code undo redo markdown',
+        toolbar: 'undo redo | code',
+        setup: function (editor) {
+            editor.on('Change', function () {
                 autoSaveNote();
-            }
-        }
-    };
-
-    const observer = new MutationObserver(callback);
-    observer.observe(editorContainer, config);
+            });
+        },
+        branding: false,
+        menubar: false,
+        statusbar: false,
+        height: 200
+    });
 
     initFuse();
     loadLocalData();
@@ -71,6 +57,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
+
 async function updateTaskOrder(event) {
     const fromListId = event.from.id;
     const toListId = event.to.id;
@@ -233,122 +220,7 @@ function toggleModalSize() {
     }
 }
 
-let autoSaveTimeout;
-async function autoSaveNote() {
-    clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(async () => {
-        const title = document.getElementById('note-title').value.trim();
-        const content = quill.root.innerHTML.trim();
-        const taskElements = document.querySelectorAll('#note-tasks .task-item');
-        const noteTasks = [];
 
-        if (!title && !content) {
-            return;
-        }
-
-        for (const taskElement of taskElements) {
-            const taskId = taskElement.dataset.id;
-            const description = taskElement.querySelector('.task-desc').value.trim();
-            const dueDate = taskElement.querySelector('.task-due-date').value;
-            const status = taskElement.querySelector('.task-status').value;
-
-            if (!description) {
-                continue;
-            }
-
-            let task = tasks.find(t => t._id === taskId);
-            if (!task) {
-                task = {
-                    _id: taskId,
-                    description,
-                    isDone: false,
-                    dueDate,
-                    status,
-                    updatedAt: new Date().toISOString(),
-                    source: 'local',
-                    type: 'task',
-                    noteId: editingNoteId
-                };
-                tasks.push(task);
-            } else {
-                task.description = description;
-                task.dueDate = dueDate;
-                task.status = status;
-                task.updatedAt = new Date().toISOString();
-                task.source = 'local';
-                task.noteId = editingNoteId;
-                delete task._deleted;
-            }
-
-            try {
-                const latestTask = await db.get(task._id);
-                task._rev = latestTask._rev;
-            } catch (error) {
-                if (error.status !== 404) {
-                    console.error('Error fetching latest task revision:', error);
-                }
-            }
-
-            noteTasks.push(task._id);
-            try {
-                await db.put(task);
-            } catch (error) {
-                console.error('Error saving task:', error);
-            }
-        }
-
-        const tasksToDelete = tasks.filter(t => t._deleted);
-        for (const task of tasksToDelete) {
-            try {
-                await db.remove(task);
-            } catch (error) {
-                console.error('Error deleting task:', error);
-            }
-        }
-        tasks = tasks.filter(t => !t._deleted);
-
-        const updatedAt = new Date().toISOString();
-        let note;
-        if (editingNoteId) {
-            note = notes.find(n => n._id === editingNoteId);
-            note.title = title;
-            note.content = content;
-            note.tasks = noteTasks;
-            note.updatedAt = updatedAt;
-            note.source = 'local';
-            try {
-                const latestNote = await db.get(note._id);
-                note._rev = latestNote._rev;
-            } catch (error) {
-                if (error.status !== 404) {
-                    console.error('Error fetching latest note revision:', error);
-                }
-            }
-        } else {
-            note = {
-                _id: uuid.v4(),
-                title,
-                content,
-                tasks: noteTasks,
-                updatedAt,
-                source: 'local',
-                type: 'note'
-            };
-            notes.push(note);
-            editingNoteId = note._id;
-        }
-        try {
-            await db.put(note);
-        } catch (error) {
-            console.error('Error saving note:', error);
-        }
-        syncDataWithCouchDB();
-        initFuse();
-        displayNotes();
-        displayTasks();
-        createSnapshot();
-    }, 1000);
-}
 
 function addNoteTask(task = {}) {
     const noteTasksDiv = document.getElementById('note-tasks');
