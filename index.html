@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuid.min.js"></script>
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/35.3.0/classic/ckeditor.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
     <!--<link rel="manifest" href="static/manifest.json">-->
 </head>
@@ -68,15 +68,15 @@
         <span class="close" onclick="hideNoteForm()">&times;</span>
         <h3>New Note</h3>
         <input type="text" id="note-title" placeholder="Title" oninput="autoSaveNote()"><br>
-        <div id="tinymce-editor-container">
-            <textarea id="tinymce-editor"></textarea>
+        <div id="ckeditor-editor-container">
+            <textarea id="ckeditor-editor"></textarea>
         </div><br>
         <div id="note-tasks" class="scrollable-tasks"></div>
         <button onclick="addNoteTask()">Add Task</button><br>
         <button onclick="hideNoteForm()">Cancel</button>
     </div>
-    </div>
-    
+</div>
+
     
 
 
