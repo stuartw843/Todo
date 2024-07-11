@@ -188,18 +188,24 @@ function clearSearch() {
 
 function showNoteForm(note) {
     document.getElementById('note-modal').classList.remove('hidden');
-    document.getElementById('note-tasks').innerHTML = '';
+    const noteTasksDiv = document.getElementById('note-tasks');
+    noteTasksDiv.innerHTML = ''; // Clear existing tasks
+
     if (note) {
         document.getElementById('note-title').value = note.title;
-        quill.root.innerHTML = converter.makeHtml(note.content);
+        editorInstance.setData(note.content);
+
         note.tasks.forEach(taskId => {
             const task = tasks.find(t => t._id === taskId);
-            if (task) addNoteTask(task);
+            if (task && !task._deleted) {
+                addNoteTask(task);
+            }
         });
+
         editingNoteId = note._id;
     } else {
         document.getElementById('note-title').value = '';
-        quill.root.innerHTML = '';
+        editorInstance.setData('');
         editingNoteId = null;
     }
 }
