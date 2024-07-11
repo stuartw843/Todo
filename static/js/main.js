@@ -742,7 +742,7 @@ window.addEventListener('online', () => {
     syncDataWithCouchDB();
 });
 
-if ('serviceWorker' in navigator) {
+/**if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('static/service-worker.js').then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
@@ -750,7 +750,7 @@ if ('serviceWorker' in navigator) {
             console.log('ServiceWorker registration failed: ', err);
         });
     });
-}
+}**/
 
 function createSnapshot() {
     const snapshot = {
