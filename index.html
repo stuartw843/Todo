@@ -11,7 +11,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuid.min.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/quill.min.js"></script>
+    <script type="module">
+        import Quill from 'https://cdn.jsdelivr.net/npm/quill@2.0.2/quill.min.js';
+
+        // Your Quill initialization code
+        var quill = new Quill('#quill-editor', {
+        theme: 'snow',
+        modules: {
+            history: {
+                delay: 2000,
+                maxStack: 500,
+                userOnly: true
+            },
+        }
+    });
+
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.min.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
