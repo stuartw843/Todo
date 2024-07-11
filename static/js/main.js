@@ -185,11 +185,11 @@ function showNoteForm(note = null) {
     document.getElementById('note-modal').classList.remove('hidden');
     if (note) {
         document.getElementById('note-title').value = note.title;
-        tinymce.get('tinymce-editor').setContent(note.content); // Set content in TinyMCE
+        editor.txt.html(note.content); // Set content in WangEditor
         displayNoteTasks(note._id);
     } else {
         document.getElementById('note-title').value = '';
-        tinymce.get('tinymce-editor').setContent(''); // Clear TinyMCE content
+        editor.txt.clear(); // Clear WangEditor content
         document.getElementById('note-tasks').innerHTML = '';
     }
     editingNoteId = note ? note._id : null;
