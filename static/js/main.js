@@ -58,14 +58,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 });
 
-
-// Function to update task order in the database
 async function updateTaskOrder(event) {
     const fromListId = event.from.id;
     const toListId = event.to.id;
     const newOrder = [...event.to.children].map(child => child.dataset.id);
 
-    // Determine the new status based on the target list
     let newStatus;
     if (toListId === 'high-impact-tasks') {
         newStatus = 'High Impact';
@@ -73,12 +70,10 @@ async function updateTaskOrder(event) {
         newStatus = 'Todo';
     }
 
-    // Update the task order and status
     for (let i = 0; i < newOrder.length; i++) {
         const taskId = newOrder[i];
         let task = tasks.find(t => t._id === taskId);
 
-        // Fetch the latest revision of the document
         try {
             const latestDoc = await db.get(taskId);
             task = { ...task, ...latestDoc };
@@ -92,7 +87,6 @@ async function updateTaskOrder(event) {
         task.updatedAt = new Date().toISOString();
         task.source = 'local';
 
-        // Attempt to update the document
         try {
             await db.put(task);
         } catch (error) {
@@ -100,12 +94,10 @@ async function updateTaskOrder(event) {
         }
     }
 
-    // Re-fetch and display tasks to ensure correct order
     await loadLocalData();
     displayTasks();
-    createSnapshot(); // Update snapshot after saving
+    createSnapshot();
 }
-
 
 function initFuse() {
     fuse = new Fuse(notes, {
@@ -174,7 +166,6 @@ function viewNoteModal(note) {
     document.getElementById('view-note-modal').classList.remove('hidden');
 }
 
-
 function hideViewNoteModal() {
     document.getElementById('view-note-modal').classList.add('hidden');
 }
@@ -228,6 +219,7 @@ function toggleModalSize() {
         toggleButton.textContent = 'Expand';
     }
 }
+
 let autoSaveTimeout;
 async function autoSaveNote() {
     clearTimeout(autoSaveTimeout);
@@ -237,7 +229,6 @@ async function autoSaveNote() {
         const taskElements = document.querySelectorAll('#note-tasks .task-item');
         const noteTasks = [];
 
-        // Don't save blank notes
         if (!title && !content) {
             return;
         }
@@ -248,7 +239,6 @@ async function autoSaveNote() {
             const dueDate = taskElement.querySelector('.task-due-date').value;
             const status = taskElement.querySelector('.task-status').value;
 
-            // Don't save blank tasks
             if (!description) {
                 continue;
             }
@@ -264,7 +254,7 @@ async function autoSaveNote() {
                     updatedAt: new Date().toISOString(),
                     source: 'local',
                     type: 'task',
-                    noteId: editingNoteId // Set noteId for new tasks
+                    noteId: editingNoteId
                 };
                 tasks.push(task);
             } else {
@@ -273,11 +263,10 @@ async function autoSaveNote() {
                 task.status = status;
                 task.updatedAt = new Date().toISOString();
                 task.source = 'local';
-                task.noteId = editingNoteId; // Update noteId for existing tasks
+                task.noteId = editingNoteId;
                 delete task._deleted;
             }
 
-            // Fetch the latest revision before saving
             try {
                 const latestTask = await db.get(task._id);
                 task._rev = latestTask._rev;
@@ -295,7 +284,6 @@ async function autoSaveNote() {
             }
         }
 
-        // Handle tasks marked for deletion
         const tasksToDelete = tasks.filter(t => t._deleted);
         for (const task of tasksToDelete) {
             try {
@@ -315,7 +303,6 @@ async function autoSaveNote() {
             note.tasks = noteTasks;
             note.updatedAt = updatedAt;
             note.source = 'local';
-            // Fetch the latest revision before saving
             try {
                 const latestNote = await db.get(note._id);
                 note._rev = latestNote._rev;
@@ -335,7 +322,7 @@ async function autoSaveNote() {
                 type: 'note'
             };
             notes.push(note);
-            editingNoteId = note._id; // Set editingNoteId to the newly created note's ID
+            editingNoteId = note._id;
         }
         try {
             await db.put(note);
@@ -346,8 +333,8 @@ async function autoSaveNote() {
         initFuse();
         displayNotes();
         displayTasks();
-        createSnapshot(); // Update snapshot after saving
-    }, 1000); // Save after 1 second of inactivity
+        createSnapshot();
+    }, 1000);
 }
 
 function addNoteTask(task = {}) {
@@ -366,18 +353,15 @@ function addNoteTask(task = {}) {
     `;
     noteTasksDiv.appendChild(taskDiv);
 
-    // Add event listeners to trigger auto-save
     taskDiv.querySelector('.task-desc').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
 }
 
-
 async function removeNoteTask(taskId, event) {
     event.stopPropagation();
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
     if (taskElement) {
-        // Remove event listeners
         taskElement.querySelector('.task-desc').removeEventListener('input', autoSaveNote);
         taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
         taskElement.querySelector('.task-status').removeEventListener('change', autoSaveNote);
@@ -385,21 +369,17 @@ async function removeNoteTask(taskId, event) {
         taskElement.remove();
     }
 
-    // Mark the task for deletion if it exists in the tasks array
     const taskIndex = tasks.findIndex(t => t._id === taskId);
     if (taskIndex > -1) {
         try {
-            const task = await db.get(taskId); // Fetch the latest revision
+            const task = await db.get(taskId);
             tasks[taskIndex] = { ...tasks[taskIndex], _deleted: true, _rev: task._rev };
         } catch (error) {
             console.error('Error fetching latest task revision:', error);
         }
     }
-    autoSaveNote(); // Trigger auto-save after removing a task
+    autoSaveNote();
 }
-
-
-
 
 function editNoteModal(id) {
     const note = notes.find(n => n._id === id);
@@ -410,16 +390,13 @@ async function deleteNoteModal(id) {
     if (confirm("Are you sure you want to delete this note?")) {
         const note = notes.find(n => n._id === id);
         if (note) {
-            // Find all tasks associated with this note
             const tasksToDelete = tasks.filter(task => note.tasks.includes(task._id));
 
-            // Delete each associated task from the database and tasks array
             for (const task of tasksToDelete) {
                 await db.remove(task);
                 tasks = tasks.filter(t => t._id !== task._id);
             }
 
-            // Delete the note itself
             deletedItems.push({ _id: note._id, type: 'note', updatedAt: new Date().toISOString() });
             notes = notes.filter(n => n._id !== id);
             await db.remove(note);
@@ -428,11 +405,10 @@ async function deleteNoteModal(id) {
             initFuse();
             displayNotes();
             displayTasks();
-            createSnapshot(); // Update snapshot after saving
+            createSnapshot();
         }
     }
 }
-
 
 function displayTasks() {
     const highImpactTasksList = document.getElementById('high-impact-tasks');
@@ -470,7 +446,6 @@ function displayTasks() {
     tasks.filter(task => task.status === 'Done').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, doneTasksList));
 }
 
-// Ensure that event.stopPropagation() is called within the editTask and deleteTask functions
 function editTask(id, event) {
     event.stopPropagation();
     const task = tasks.find(t => t._id === id);
@@ -480,16 +455,12 @@ function editTask(id, event) {
 async function deleteTask(id, event) {
     event.stopPropagation();
     try {
-        // Fetch the latest revision of the task
         const task = await db.get(id);
-        
-        // Mark the task for deletion
+
         await db.remove(task);
-        
-        // Remove the task from the local tasks array
+
         tasks = tasks.filter(t => t._id !== id);
 
-        // Sync and update UI
         syncDataWithCouchDB();
         displayTasks();
         displayNotes();
@@ -507,7 +478,7 @@ async function changeTaskStatus(taskId, newStatus) {
         await db.put(task);
         syncDataWithCouchDB();
         displayTasks();
-        createSnapshot(); // Update snapshot after saving
+        createSnapshot();
     }
 }
 
@@ -554,34 +525,29 @@ async function saveTask() {
     hideTaskForm();
     displayTasks();
     displayNotes();
-    createSnapshot(); // Update snapshot after saving
+    createSnapshot();
 }
 
 async function toggleTaskDone(taskId) {
     try {
-        // Fetch the latest task revision
         const task = await db.get(taskId);
         task.isDone = !task.isDone;
         task.updatedAt = new Date().toISOString();
         task.source = 'local';
-        
-        // Save the updated task
+
         await db.put(task);
 
-        // Update the local tasks array
         const taskIndex = tasks.findIndex(t => t._id === taskId);
         if (taskIndex > -1) {
             tasks[taskIndex] = task;
         }
-        
-        // Update the UI
+
         displayTasks();
         displayNotes();
     } catch (error) {
         console.error('Failed to update the task:', error);
     }
 }
-
 
 async function deleteAllNotesAndTasks() {
     if (confirm("Are you sure you want to delete all notes and tasks? This action cannot be undone.")) {
@@ -600,7 +566,7 @@ async function deleteAllNotesAndTasks() {
         syncDataWithCouchDB();
         displayNotes();
         displayTasks();
-        createSnapshot(); // Update snapshot after saving
+        createSnapshot();
     }
 }
 
@@ -633,7 +599,6 @@ function populateSnapshotDropdown() {
     });
 }
 
-
 async function restoreSnapshot() {
     const snapshotSelect = document.getElementById('snapshot-select');
     const timestamp = snapshotSelect.value;
@@ -645,7 +610,6 @@ async function restoreSnapshot() {
         tasks = snapshot.tasks;
         deletedItems = snapshot.deletedItems;
 
-        // Save the restored data to the database
         await db.bulkDocs([...notes, ...tasks, ...deletedItems]);
 
         syncDataWithCouchDB();
@@ -657,7 +621,6 @@ async function restoreSnapshot() {
         alert('Failed to restore snapshot.');
     }
 }
-
 
 function updateSyncStatus(status) {
     const syncStatus = document.getElementById('sync-status');
@@ -694,9 +657,9 @@ function initCouchDBSync() {
     }
 
     remoteDb = new PouchDB(couchdbUrl, {
-        auth: {
-            username: couchdbUsername,
-            password: couchdbPassword
+        fetch: function (url, opts) {
+            opts.headers.set('Authorization', 'Basic ' + btoa(couchdbUsername + ':' + couchdbPassword));
+            return PouchDB.fetch(url, opts);
         }
     });
 
@@ -747,16 +710,6 @@ window.addEventListener('online', () => {
     syncDataWithCouchDB();
 });
 
-/**if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('static/service-worker.js').then(registration => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, err => {
-            console.log('ServiceWorker registration failed: ', err);
-        });
-    });
-}**/
-
 function createSnapshot() {
     const snapshot = {
         notes,
@@ -766,12 +719,10 @@ function createSnapshot() {
     };
     let snapshots = JSON.parse(localStorage.getItem('snapshots')) || [];
 
-    // Clean up old snapshots (older than 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     snapshots = snapshots.filter(snapshot => new Date(snapshot.timestamp) > sevenDaysAgo);
 
-    // Replace or add the snapshot for today
     const today = new Date().toISOString().split('T')[0];
     const todaySnapshotIndex = snapshots.findIndex(s => s.timestamp.split('T')[0] === today);
     if (todaySnapshotIndex >= 0) {
@@ -781,14 +732,10 @@ function createSnapshot() {
     }
 
     localStorage.setItem('snapshots', JSON.stringify(snapshots));
-    populateSnapshotDropdown(); // Refresh the dropdown
+    populateSnapshotDropdown();
 }
 
-
-// Initial setup
 showPage('notes');
 initFuse();
 loadLocalData();
 initCouchDBSync();
-
-            
