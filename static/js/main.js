@@ -8,7 +8,7 @@ let deletedItems = [];
 let editingNoteId = null;
 let editingTaskId = null;
 let fuse;
-let quill;
+
 
 function toggleEditorSize() {
     const editorContainer = document.getElementById('quill-editor-container');
@@ -26,17 +26,6 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    quill = new Quill('#quill-editor', {
-        theme: 'snow',
-        modules: {
-            history: {
-                delay: 2000,
-                maxStack: 500,
-                userOnly: true
-            },
-        }
-    });
-
     quill.on('text-change', () => {
         autoSaveNote();
     });
