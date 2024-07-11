@@ -748,6 +748,38 @@ function createSnapshot() {
     populateSnapshotDropdown();
 }
 
+async function clearDatabase() {
+    if (confirm("Are you sure you want to clear the entire database? This action cannot be undone.")) {
+        try {
+            // Fetch all documents
+            const allDocs = await db.allDocs();
+            const deletePromises = allDocs.rows.map(doc => {
+                return db.remove(doc.id, doc.value.rev);
+            });
+
+            // Wait for all delete operations to complete
+            await Promise.all(deletePromises);
+
+            // Reset local arrays
+            notes = [];
+            tasks = [];
+            deletedItems = [];
+
+            // Reinitialize the application state
+            syncDataWithCouchDB();
+            displayNotes();
+            displayTasks();
+            createSnapshot();
+            alert("Database cleared successfully!");
+        } catch (error) {
+            console.error("Error clearing the database:", error);
+            alert("An error occurred while clearing the database. Please try again.");
+        }
+    }
+}
+// Add the clearDatabase function to the global scope for the button to access it
+window.clearDatabase = clearDatabase;
+
 showPage('notes');
 initFuse();
 loadLocalData();
