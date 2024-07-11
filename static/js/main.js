@@ -377,6 +377,11 @@ async function removeNoteTask(taskId, event) {
     event.stopPropagation();
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
     if (taskElement) {
+        // Remove event listeners
+        taskElement.querySelector('.task-desc').removeEventListener('input', autoSaveNote);
+        taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
+        taskElement.querySelector('.task-status').removeEventListener('change', autoSaveNote);
+
         taskElement.remove();
     }
 
