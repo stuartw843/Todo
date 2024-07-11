@@ -10,6 +10,7 @@ let editingTaskId = null;
 let fuse;
 let quill;
 
+
 function toggleEditorSize() {
     const editorContainer = document.getElementById('quill-editor-container');
     const toggleIcon = document.getElementById('toggle-icon');
