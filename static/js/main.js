@@ -28,8 +28,8 @@ function toggleEditorSize() {
 document.addEventListener('DOMContentLoaded', (event) => {
     tinymce.init({
         selector: '#tinymce-editor',
-        plugins: 'code undo redo markdown',
-        toolbar: 'undo redo | code',
+        plugins: 'code autolink lists link charmap preview anchor searchreplace visualblocks fullscreen insertdatetime media table paste help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
         setup: function (editor) {
             editor.on('Change', function () {
                 autoSaveNote();
@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
+
 
 async function updateTaskOrder(event) {
     const fromListId = event.from.id;
@@ -186,27 +187,24 @@ function clearSearch() {
     displayNotes(notes);
 }
 
-function showNoteForm(note) {
+function showNoteForm(note = null) {
     document.getElementById('note-modal').classList.remove('hidden');
-    const noteTasksDiv = document.getElementById('note-tasks');
-    noteTasksDiv.innerHTML = ''; // Clear existing tasks
-
     if (note) {
         document.getElementById('note-title').value = note.title;
-        editorInstance.setData(note.content);
-
-        note.tasks.forEach(taskId => {
-            const task = tasks.find(t => t._id === taskId);
-            if (task && !task._deleted) {
-                addNoteTask(task);
-            }
-        });
-
-        editingNoteId = note._id;
+        tinymce.get('tinymce-editor').setContent(note.content); // Set content in TinyMCE
+        displayNoteTasks(note._id);
     } else {
         document.getElementById('note-title').value = '';
-        editorInstance.setData('');
-        editingNoteId = null;
+        tinymce.get('tinymce-editor').setContent(''); // Clear TinyMCE content
+        document.getElementById('note-tasks').innerHTML = '';
+    }
+    editingNoteId = note ? note._id : null;
+}
+
+async function editNoteModal(noteId) {
+    const note = notes.find(n => n._id === noteId);
+    if (note) {
+        showNoteForm(note);
     }
 }
 
