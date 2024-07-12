@@ -35,6 +35,11 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
+function cleanUpTinyMCE() {
+    if (tinymce.get('tinymce-editor')) {
+        tinymce.get('tinymce-editor').destroy();
+    }
+}
 
 const debouncedAutoSaveNote = debounce(autoSaveNote, 2000);
 
@@ -244,6 +249,7 @@ function hideNoteForm() {
         taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
         taskElement.querySelector('.task-status').removeEventListener('change', autoSaveNote);
     });
+    cleanUpTinyMCE();
 }
 
 function toggleModalSize() {
