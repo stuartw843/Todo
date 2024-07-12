@@ -10,11 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuid.min.js"></script>
-    
-    <script src="https://unpkg.com/@tiptap/core@2.0.0-beta.94/dist/tiptap.umd.min.js"></script>
-    <script src="https://unpkg.com/@tiptap/extension-markdown@2.0.0-beta.30/dist/tiptap-extension-markdown.umd.min.js"></script>
-    <script src="https://unpkg.com/@tiptap/extension-history@2.0.0-beta.30/dist/tiptap-extension-history.umd.min.js"></script>
-    <script src="https://unpkg.com/@tiptap/extension-placeholder@2.0.0-beta.30/dist/tiptap-extension-placeholder.umd.min.js"></script>
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 </head>
 <body>
@@ -71,13 +67,13 @@
             <span class="close" onclick="hideNoteForm()">&times;</span>
             <h3>New Note</h3>
             <input type="text" id="note-title" placeholder="Title"><br>
-            <div id="tiptap-editor-container">
+            <div id="tinymce-editor-container">
                 <button id="toggle-size-button" onclick="toggleEditorSize()" class="custom_button">
                     <i id="toggle-icon" class="fas fa-expand"></i>
                 </button>
-                <button onclick="editor.chain().focus().undo().run()" class="custom_button"><i class="fas fa-undo"></i></button>
-                <button onclick="editor.chain().focus().redo().run()" class="custom_button"><i class="fas fa-redo"></i></button>
-                <div id="tiptap-editor" style="height: 200px;"></div>
+                <button onclick="tinymce.activeEditor.undo()" class="custom_button"><i class="fas fa-undo"></i></button>
+                <button onclick="tinymce.activeEditor.redo()" class="custom_button"><i class="fas fa-redo"></i></button>
+                <textarea id="tinymce-editor" style="height: 200px;"></textarea>
             </div><br>
             <div id="note-tasks" class="scrollable-tasks"></div>
             <button onclick="addNoteTask()">Add Task</button><br>
