@@ -69,6 +69,10 @@ textarea {
     color: red;
 }
 
+#task-mpdal {
+    z-index:10001;
+
+}
 .task {
     display: flex;
     flex-direction: column;
