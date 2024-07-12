@@ -201,7 +201,6 @@ function clearSearch() {
 }
 
 function showNoteForm(note) {
-function showNoteForm(note) {
     document.getElementById('note-modal').classList.remove('hidden');
     document.getElementById('note-tasks').innerHTML = '';
     if (note) {
