@@ -55,7 +55,8 @@ TinyMCE requires a license.
 
 Obtain a License:
 - Visit the TinyMCE pricing page and choose a plan that suits your needs.
-- Follow the instructions to purchase a license and obtain your license key.
+- Create an API key.
+- Register your domain as an "Approved Domain"
 
 Configure TinyMCE with Your License Key:
 - Open index.html.
@@ -63,6 +64,7 @@ Configure TinyMCE with Your License Key:
 ```html
 <script src="https://cdn.tiny.cloud/1/your-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 ```
+
 
 # Snapshots
 Snapshots are automatically created on edits and stored for 7 days.
