@@ -24,6 +24,21 @@ function toggleEditorSize() {
     }
 }
 
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+const debouncedAutoSaveNote = debounce(autoSaveNote, 2000);
+
+
 document.addEventListener('DOMContentLoaded', (event) => {
     // Initialize TinyMCE editor
     tinymce.init({
@@ -36,7 +51,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         content_css: '//www.tiny.cloud/css/codepen.min.css',
         setup: function (editor) {
             editor.on('Change', function () {
-                autoSaveNote();
+                debouncedAutoSaveNote();
             });
         },
         style_formats: [
@@ -221,7 +236,7 @@ function showNoteForm(note) {
 }
 
 function hideNoteForm() {
-    autoSaveNote();
+    debouncedAutoSaveNote();
     document.getElementById('note-modal').classList.add('hidden');
     const taskElements = document.querySelectorAll('#note-tasks .task-item');
     taskElements.forEach(taskElement => {
@@ -401,7 +416,7 @@ async function removeNoteTask(taskId, event) {
             console.error('Error fetching latest task revision:', error);
         }
     }
-    autoSaveNote();
+    debouncedAutoSaveNote();
 }
 
 function editNoteModal(id) {
@@ -690,7 +705,13 @@ function initCouchDBSync() {
 
     const dbSync = db.sync(remoteDb, {
         live: true,
-        retry: true
+        retry: true,
+        back_off_function: function (delay) {
+            if (delay === 0) {
+                return 1000;
+            }
+            return delay * 1.5;
+        }
     });
 
     // Increase the max listeners for the sync instance
@@ -715,7 +736,7 @@ function initCouchDBSync() {
         updateSyncStatus('offline');
     });
 
-    dbSync.setMaxListeners(40);
+    dbSync.setMaxListeners(30);
 }
 
 async function loadLocalData() {
