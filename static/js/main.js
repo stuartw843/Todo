@@ -154,8 +154,10 @@ function viewNoteModal(note) {
     document.getElementById('view-note-content').innerHTML = converter.makeHtml(note.content);
     const noteTasksDiv = document.getElementById('view-note-tasks');
     noteTasksDiv.innerHTML = '';
-    note.tasks.forEach(taskId => {
-        const task = tasks.find(t => t._id === taskId);
+
+    const orderedTasks = note.tasks.map(taskId => tasks.find(t => t._id === taskId)).sort((a, b) => a.isDone - b.isDone || new Date(b.updatedAt) - new Date(a.updatedAt));
+    
+    orderedTasks.forEach(task => {
         if (task) {
             const taskDiv = document.createElement('div');
             taskDiv.classList.add('task-card');
@@ -176,6 +178,7 @@ function viewNoteModal(note) {
             noteTasksDiv.appendChild(taskDiv);
         }
     });
+
     document.getElementById('view-note-modal').classList.remove('hidden');
 }
 
@@ -463,7 +466,7 @@ function displayTasks() {
 
     tasks.filter(task => task.status === 'High Impact').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, highImpactTasksList));
     tasks.filter(task => task.status === 'Todo').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, todoTasksList));
-    tasks.filter(task => task.status === 'Done').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, doneTasksList));
+    tasks.filter(task => task.status === 'Done').sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).forEach(task => renderTask(task, doneTasksList));
 }
 
 function editTask(id, event) {
@@ -552,6 +555,7 @@ async function toggleTaskDone(taskId) {
     try {
         const task = await db.get(taskId);
         task.isDone = !task.isDone;
+        task.status = task.isDone ? 'Done' : 'Todo';
         task.updatedAt = new Date().toISOString();
         task.source = 'local';
 
@@ -568,6 +572,7 @@ async function toggleTaskDone(taskId) {
         console.error('Failed to update the task:', error);
     }
 }
+
 
 async function deleteAllNotesAndTasks() {
     if (confirm("Are you sure you want to delete all notes and tasks? This action cannot be undone.")) {
