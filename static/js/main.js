@@ -30,14 +30,28 @@ document.addEventListener('DOMContentLoaded', (event) => {
         selector: '#tinymce-editor',
         height: 200,
         menubar: false,
-        plugins: 'autosave lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
-        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+        plugins: 'autosave lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount autolink',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | h1 h2 h3 | bullist numlist outdent indent | removeformat | link image | fullscreen',
         autosave_interval: '30s',
+        content_css: '//www.tiny.cloud/css/codepen.min.css',
         setup: function (editor) {
             editor.on('Change', function () {
                 autoSaveNote();
             });
-        }
+        },
+        style_formats: [
+            { title: 'Heading 1', format: 'h1' },
+            { title: 'Heading 2', format: 'h2' },
+            { title: 'Heading 3', format: 'h3' },
+        ],
+        formats: {
+            h1: { block: 'h1' },
+            h2: { block: 'h2' },
+            h3: { block: 'h3' },
+        },
+        invalid_elements: 'script,iframe',
+        extended_valid_elements: 'span[*],div[*]',
+        link_context_toolbar: true,
     });
 
     initFuse();
@@ -56,6 +70,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
+
 
 async function updateTaskOrder(event) {
     const fromListId = event.from.id;
