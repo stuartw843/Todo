@@ -25,13 +25,16 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
+    // Increase the maximum number of listeners
+    require('events').EventEmitter.defaultMaxListeners = 20;
+
     // Initialize TinyMCE editor
     tinymce.init({
         selector: '#tinymce-editor',
         height: 200,
         menubar: false,
-        plugins: 'autosave lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table autolink',
-        toolbar: 'undo redo | formatselect | bold italic fullscreen | h1 h2 h3 | bullist numlist outdent indent | removeformat | link image backcolor',
+        plugins: 'autosave lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount autolink',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | h1 h2 h3 | bullist numlist outdent indent | removeformat | link image | fullscreen',
         autosave_interval: '30s',
         content_css: '//www.tiny.cloud/css/codepen.min.css',
         setup: function (editor) {
@@ -676,11 +679,12 @@ function initCouchDBSync() {
         }
     });
 
-    syncDataWithCouchDB();
-    db.sync(remoteDb, {
+    const dbSync = db.sync(remoteDb, {
         live: true,
         retry: true
-    }).on('change', (info) => {
+    });
+
+    dbSync.on('change', (info) => {
         console.log('Change detected', info);
         loadLocalData();
     }).on('paused', (err) => {
@@ -700,6 +704,9 @@ function initCouchDBSync() {
         console.error('Replication error', err);
         updateSyncStatus('offline');
     });
+
+    // Increase the max listeners for the sync instance
+    dbSync.setMaxListeners(20);
 }
 
 async function loadLocalData() {
