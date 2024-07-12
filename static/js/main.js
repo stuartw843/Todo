@@ -251,7 +251,7 @@ function hideNoteForm() {
         taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
         taskElement.querySelector('.task-status').removeEventListener('change', autoSaveNote);
     });
-    cleanUpTinyMCE();
+    //cleanUpTinyMCE();
 }
 
 function toggleModalSize() {
