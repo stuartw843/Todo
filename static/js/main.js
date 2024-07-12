@@ -8,10 +8,9 @@ let deletedItems = [];
 let editingNoteId = null;
 let editingTaskId = null;
 let fuse;
-let editor;
 
 function toggleEditorSize() {
-    const editorContainer = document.getElementById('tiptap-editor-container');
+    const editorContainer = document.getElementById('tinymce-editor-container');
     const toggleIcon = document.getElementById('toggle-icon');
     const modalContent = document.querySelector('#note-modal .modal-content');
     editorContainer.classList.toggle('expanded');
@@ -26,18 +25,19 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    // Initialize TipTap editor
-    editor = new tiptap.Editor({
-        element: document.querySelector('#tiptap-editor'),
-        extensions: [
-            tiptap.Markdown.configure({ html: true }),
-            tiptap.History.configure({ depth: 500 }),
-            tiptap.Placeholder.configure({ placeholder: 'Start typing your note...' }),
-        ],
-        content: '',
-        onUpdate: () => {
-            autoSaveNote();
-        },
+    // Initialize TinyMCE editor
+    tinymce.init({
+        selector: '#tinymce-editor',
+        height: 200,
+        menubar: false,
+        plugins: 'autosave lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+        autosave_interval: '30s',
+        setup: function (editor) {
+            editor.on('Change', function () {
+                autoSaveNote();
+            });
+        }
     });
 
     initFuse();
@@ -190,7 +190,7 @@ function showNoteForm(note) {
     document.getElementById('note-tasks').innerHTML = '';
     if (note) {
         document.getElementById('note-title').value = note.title;
-        editor.commands.setContent(note.content);
+        tinymce.get('tinymce-editor').setContent(note.content);
         note.tasks.forEach(taskId => {
             const task = tasks.find(t => t._id === taskId);
             if (task) addNoteTask(task);
@@ -198,7 +198,7 @@ function showNoteForm(note) {
         editingNoteId = note._id;
     } else {
         document.getElementById('note-title').value = '';
-        editor.commands.setContent('');
+        tinymce.get('tinymce-editor').setContent('');
         editingNoteId = null;
     }
 }
@@ -224,7 +224,7 @@ async function autoSaveNote() {
     clearTimeout(autoSaveTimeout);
     autoSaveTimeout = setTimeout(async () => {
         const title = document.getElementById('note-title').value.trim();
-        const content = editor.getHTML();
+        const content = tinymce.get('tinymce-editor').getContent();
         const taskElements = document.querySelectorAll('#note-tasks .task-item');
         const noteTasks = [];
 
