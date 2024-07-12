@@ -168,6 +168,7 @@ function displayNotes(filteredNotes = notes) {
         noteDiv.addEventListener('click', () => viewNoteModal(note));
         notesList.appendChild(noteDiv);
     });
+    initFuse(); 
 }
 
 function viewNoteModal(note) {
