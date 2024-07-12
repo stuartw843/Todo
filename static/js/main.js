@@ -10,7 +10,6 @@ let editingTaskId = null;
 let fuse;
 let quill;
 
-
 function toggleEditorSize() {
     const editorContainer = document.getElementById('quill-editor-container');
     const toggleIcon = document.getElementById('toggle-icon');
@@ -27,13 +26,34 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    const E = window.wangEditor;
-    const editor = new E('#wang-editor');
-    editor.create();
-
-    editor.txt.eventHooks.changeEvents.push(function () {
-        autoSaveNote();
+    // Initialize Quill editor
+    quill = new Quill('#quill-editor', {
+        theme: 'snow',
+        modules: {
+            history: {
+                delay: 2000,
+                maxStack: 500,
+                userOnly: true
+            },
+        }
     });
+
+    // Use MutationObserver to detect changes in the editor
+    const editorContainer = document.getElementById('quill-editor-container');
+    const config = { childList: true, subtree: true };
+    
+    const callback = function(mutationsList, observer) {
+        for (let mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+                console.log('A child node has been added or removed.');
+                // Call your function that was previously triggered by DOMNodeInserted
+                autoSaveNote();
+            }
+        }
+    };
+
+    const observer = new MutationObserver(callback);
+    observer.observe(editorContainer, config);
 
     initFuse();
     loadLocalData();
@@ -51,9 +71,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
-
-
-
 async function updateTaskOrder(event) {
     const fromListId = event.from.id;
     const toListId = event.to.id;
@@ -182,24 +199,21 @@ function clearSearch() {
     displayNotes(notes);
 }
 
-function showNoteForm(note = null) {
+function showNoteForm(note) {
     document.getElementById('note-modal').classList.remove('hidden');
+    document.getElementById('note-tasks').innerHTML = '';
     if (note) {
         document.getElementById('note-title').value = note.title;
-        editor.txt.html(note.content); // Set content in WangEditor
-        displayNoteTasks(note._id);
+        quill.root.innerHTML = converter.makeHtml(note.content);
+        note.tasks.forEach(taskId => {
+            const task = tasks.find(t => t._id === taskId);
+            if (task) addNoteTask(task);
+        });
+        editingNoteId = note._id;
     } else {
         document.getElementById('note-title').value = '';
-        editor.txt.clear(); // Clear WangEditor content
-        document.getElementById('note-tasks').innerHTML = '';
-    }
-    editingNoteId = note ? note._id : null;
-}
-
-async function editNoteModal(noteId) {
-    const note = notes.find(n => n._id === noteId);
-    if (note) {
-        showNoteForm(note);
+        quill.root.innerHTML = '';
+        editingNoteId = null;
     }
 }
 
@@ -219,7 +233,122 @@ function toggleModalSize() {
     }
 }
 
+let autoSaveTimeout;
+async function autoSaveNote() {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(async () => {
+        const title = document.getElementById('note-title').value.trim();
+        const content = quill.root.innerHTML.trim();
+        const taskElements = document.querySelectorAll('#note-tasks .task-item');
+        const noteTasks = [];
 
+        if (!title && !content) {
+            return;
+        }
+
+        for (const taskElement of taskElements) {
+            const taskId = taskElement.dataset.id;
+            const description = taskElement.querySelector('.task-desc').value.trim();
+            const dueDate = taskElement.querySelector('.task-due-date').value;
+            const status = taskElement.querySelector('.task-status').value;
+
+            if (!description) {
+                continue;
+            }
+
+            let task = tasks.find(t => t._id === taskId);
+            if (!task) {
+                task = {
+                    _id: taskId,
+                    description,
+                    isDone: false,
+                    dueDate,
+                    status,
+                    updatedAt: new Date().toISOString(),
+                    source: 'local',
+                    type: 'task',
+                    noteId: editingNoteId
+                };
+                tasks.push(task);
+            } else {
+                task.description = description;
+                task.dueDate = dueDate;
+                task.status = status;
+                task.updatedAt = new Date().toISOString();
+                task.source = 'local';
+                task.noteId = editingNoteId;
+                delete task._deleted;
+            }
+
+            try {
+                const latestTask = await db.get(task._id);
+                task._rev = latestTask._rev;
+            } catch (error) {
+                if (error.status !== 404) {
+                    console.error('Error fetching latest task revision:', error);
+                }
+            }
+
+            noteTasks.push(task._id);
+            try {
+                await db.put(task);
+            } catch (error) {
+                console.error('Error saving task:', error);
+            }
+        }
+
+        const tasksToDelete = tasks.filter(t => t._deleted);
+        for (const task of tasksToDelete) {
+            try {
+                await db.remove(task);
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
+        }
+        tasks = tasks.filter(t => !t._deleted);
+
+        const updatedAt = new Date().toISOString();
+        let note;
+        if (editingNoteId) {
+            note = notes.find(n => n._id === editingNoteId);
+            note.title = title;
+            note.content = content;
+            note.tasks = noteTasks;
+            note.updatedAt = updatedAt;
+            note.source = 'local';
+            try {
+                const latestNote = await db.get(note._id);
+                note._rev = latestNote._rev;
+            } catch (error) {
+                if (error.status !== 404) {
+                    console.error('Error fetching latest note revision:', error);
+                }
+            }
+        } else {
+            note = {
+                _id: uuid.v4(),
+                title,
+                content,
+                tasks: noteTasks,
+                updatedAt,
+                source: 'local',
+                type: 'note'
+            };
+            notes.push(note);
+            editingNoteId = note._id;
+        }
+        try {
+            await db.put(note);
+        } catch (error) {
+            console.error('Error saving note:', error);
+        }
+        syncDataWithCouchDB();
+        initFuse();
+        displayNotes();
+        displayTasks();
+        createSnapshot();
+    }, 1000);
+}
 
 function addNoteTask(task = {}) {
     const noteTasksDiv = document.getElementById('note-tasks');
@@ -241,110 +370,6 @@ function addNoteTask(task = {}) {
     taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
 }
-
-let autoSaveTimeout;
-async function autoSaveNote() {
-    clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(async () => {
-        const title = document.getElementById('note-title').value.trim();
-        const content = editor.txt.html().trim(); // Get content from WangEditor
-        const taskElements = document.querySelectorAll('#note-tasks .task-item');
-        const noteTasks = [];
-
-        // Don't save blank notes
-        if (!title && !content) {
-            return;
-        }
-
-        for (const taskElement of taskElements) {
-            const taskId = taskElement.dataset.id;
-            const description = taskElement.querySelector('.task-desc').value.trim();
-            const dueDate = taskElement.querySelector('.task-due-date').value;
-            const status = taskElement.querySelector('.task-status').value;
-
-            // Don't save blank tasks
-            if (!description) {
-                continue;
-            }
-
-            let task = tasks.find(t => t._id === taskId);
-            if (!task) {
-                task = {
-                    _id: taskId,
-                    description,
-                    isDone: false,
-                    dueDate,
-                    status,
-                    updatedAt: new Date().toISOString(),
-                    source: 'local',
-                    type: 'task'
-                };
-                tasks.push(task);
-            } else {
-                task.description = description;
-                task.dueDate = dueDate;
-                task.status = status;
-                task.updatedAt = new Date().toISOString();
-                task.source = 'local';
-                delete task._deleted;
-            }
-            // Fetch the latest revision before saving
-            try {
-                const latestTask = await db.get(task._id);
-                task._rev = latestTask._rev;
-            } catch (error) {
-                console.error('Error fetching latest task revision:', error);
-            }
-            noteTasks.push(task._id);
-            try {
-                await db.put(task);
-            } catch (error) {
-                console.error('Error saving task:', error);
-            }
-        }
-
-        const updatedAt = new Date().toISOString();
-        let note;
-        if (editingNoteId) {
-            note = notes.find(n => n._id === editingNoteId);
-            note.title = title;
-            note.content = content;
-            note.tasks = noteTasks;
-            note.updatedAt = updatedAt;
-            note.source = 'local';
-            // Fetch the latest revision before saving
-            try {
-                const latestNote = await db.get(note._id);
-                note._rev = latestNote._rev;
-            } catch (error) {
-                console.error('Error fetching latest note revision:', error);
-            }
-        } else {
-            note = {
-                _id: uuid.v4(),
-                title,
-                content,
-                tasks: noteTasks,
-                updatedAt,
-                source: 'local',
-                type: 'note'
-            };
-            notes.push(note);
-            editingNoteId = note._id; // Set editingNoteId to the newly created note's ID
-        }
-        try {
-            await db.put(note);
-        } catch (error) {
-            console.error('Error saving note:', error);
-        }
-        syncDataWithCouchDB();
-        initFuse();
-        displayNotes();
-        displayTasks();
-        updateSnapshot(); // Update snapshot after saving
-    }, 1000); // Save after 1 second of inactivity
-}
-
 
 async function removeNoteTask(taskId, event) {
     event.stopPropagation();
