@@ -30,9 +30,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
     editor = new tiptap.Editor({
         element: document.querySelector('#tiptap-editor'),
         extensions: [
-            tiptap.extensions.Markdown.configure({ html: true }),
-            tiptap.extensions.History.configure({ depth: 500 }),
-            tiptap.extensions.Placeholder.configure({ placeholder: 'Start typing your note...' }),
+            tiptap.Markdown.configure({ html: true }),
+            tiptap.History.configure({ depth: 500 }),
+            tiptap.Placeholder.configure({ placeholder: 'Start typing your note...' }),
         ],
         content: '',
         onUpdate: () => {
