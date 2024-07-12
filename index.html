@@ -10,15 +10,12 @@
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuid.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
-    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script
-    <!-- Add WangEditor CSS -->
-<link rel="stylesheet" href="https://unpkg.com/wangeditor/dist/css/wangEditor.min.css">
-
-<!-- Add WangEditor JS -->
-<script src="https://unpkg.com/wangeditor/dist/wangEditor.min.js"></script>
+    
+    <script src="https://unpkg.com/@tiptap/core@2.0.0-beta.94/dist/tiptap.umd.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-markdown@2.0.0-beta.30/dist/tiptap-extension-markdown.umd.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-history@2.0.0-beta.30/dist/tiptap-extension-history.umd.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-placeholder@2.0.0-beta.30/dist/tiptap-extension-placeholder.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-    <!--<link rel="manifest" href="static/manifest.json">-->
 </head>
 <body>
     <div class="header">
@@ -42,13 +39,13 @@
             <div id="notes-list"></div>
         </div>
         <div id="tasks-page" class="hidden">
-    <h2>High Impact Tasks</h2>
-    <div id="high-impact-tasks" class="task-list"></div>
-    <h2>Todo Tasks</h2>
-    <div id="todo-tasks" class="task-list"></div>
-    <h2>Done Tasks</h2>
-    <div id="done-tasks" class="task-list"></div>
-</div>
+            <h2>High Impact Tasks</h2>
+            <div id="high-impact-tasks" class="task-list"></div>
+            <h2>Todo Tasks</h2>
+            <div id="todo-tasks" class="task-list"></div>
+            <h2>Done Tasks</h2>
+            <div id="done-tasks" class="task-list"></div>
+        </div>
 
         <div id="settings-page" class="hidden">
             <div class="modal" onclick="hideSettings()">
@@ -70,25 +67,22 @@
     </div>
 
     <div id="note-modal" class="modal hidden" onclick="hideNoteForm()">
-    <div id="note-modal" class="modal hidden" onclick="hideNoteForm()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <span class="close" onclick="hideNoteForm()">&times;</span>
-        <h3>New Note</h3>
-        <input type="text" id="note-title" placeholder="Title" oninput="autoSaveNote()"><br>
-        <div id="wang-editor-container">
-            <button id="toggle-size-button" onclick="toggleEditorSize()">
-                <i id="toggle-icon" class="fas fa-expand"></i>
-            </button>
-            <div id="wang-editor" style="height: 200px;"></div>
-        </div><br>
-        <div id="note-tasks" class="scrollable-tasks"></div>
-        <button onclick="addNoteTask()">Add Task</button><br>
-        <button onclick="hideNoteForm()">Cancel</button>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="hideNoteForm()">&times;</span>
+            <h3>New Note</h3>
+            <input type="text" id="note-title" placeholder="Title"><br>
+            <div id="tiptap-editor-container">
+                <button id="toggle-size-button" onclick="toggleEditorSize()" class="custom_button">
+                    <i id="toggle-icon" class="fas fa-expand"></i>
+                </button>
+                <button onclick="editor.chain().focus().undo().run()" class="custom_button"><i class="fas fa-undo"></i></button>
+                <button onclick="editor.chain().focus().redo().run()" class="custom_button"><i class="fas fa-redo"></i></button>
+                <div id="tiptap-editor" style="height: 200px;"></div>
+            </div><br>
+            <div id="note-tasks" class="scrollable-tasks"></div>
+            <button onclick="addNoteTask()">Add Task</button><br>
+        </div>
     </div>
-    </div>
-        
-    
-
 
     <div id="task-modal" class="modal hidden" onclick="hideTaskForm()">
         <div class="modal-content" onclick="event.stopPropagation()">
