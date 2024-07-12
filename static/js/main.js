@@ -25,9 +25,6 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    // Increase the maximum number of listeners
-    require('events').EventEmitter.defaultMaxListeners = 20;
-
     // Initialize TinyMCE editor
     tinymce.init({
         selector: '#tinymce-editor',
@@ -684,6 +681,7 @@ function initCouchDBSync() {
         retry: true
     });
 
+    // Increase the max listeners for the sync instance
     dbSync.on('change', (info) => {
         console.log('Change detected', info);
         loadLocalData();
@@ -705,7 +703,6 @@ function initCouchDBSync() {
         updateSyncStatus('offline');
     });
 
-    // Increase the max listeners for the sync instance
     dbSync.setMaxListeners(20);
 }
 
