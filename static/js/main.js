@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
         selector: '#tinymce-editor',
         height: 200,
         menubar: false,
-        plugins: 'autosave lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount autolink',
-        toolbar: 'undo redo | formatselect | bold italic backcolor | h1 h2 h3 | bullist numlist outdent indent | removeformat | link image | fullscreen',
+        plugins: 'autosave lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code autolink',
+        toolbar: 'undo redo | formatselect | bold italic fullscreen | h1 h2 h3 | bullist numlist outdent indent | removeformat | link image backcolor',
         autosave_interval: '30s',
         content_css: '//www.tiny.cloud/css/codepen.min.css',
         setup: function (editor) {
