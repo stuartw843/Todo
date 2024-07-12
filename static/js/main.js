@@ -215,11 +215,20 @@ function showNoteForm(note) {
         tinymce.get('tinymce-editor').setContent('');
         editingNoteId = null;
     }
+    taskDiv.querySelector('.task-desc').addEventListener('input', autoSaveNote);
+    taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
+    taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
 }
 
 function hideNoteForm() {
     autoSaveNote();
     document.getElementById('note-modal').classList.add('hidden');
+    const taskElements = document.querySelectorAll('#note-tasks .task-item');
+    taskElements.forEach(taskElement => {
+        taskElement.querySelector('.task-desc').removeEventListener('input', autoSaveNote);
+        taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
+        taskElement.querySelector('.task-status').removeEventListener('change', autoSaveNote);
+    });
 }
 
 function toggleModalSize() {
@@ -366,6 +375,14 @@ function addNoteTask(task = {}) {
     `;
     noteTasksDiv.appendChild(taskDiv);
 
+    if (taskElement) {
+        taskElement.querySelector('.task-desc').removeEventListener('input', autoSaveNote);
+        taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
+        taskElement.querySelector('.task-status').removeEventListener('change', autoSaveNote);
+
+        taskElement.remove();
+    }
+    
     taskDiv.querySelector('.task-desc').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
@@ -373,6 +390,7 @@ function addNoteTask(task = {}) {
 
 async function removeNoteTask(taskId, event) {
     event.stopPropagation();
+    
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
     if (taskElement) {
         taskElement.querySelector('.task-desc').removeEventListener('input', autoSaveNote);
@@ -381,7 +399,6 @@ async function removeNoteTask(taskId, event) {
 
         taskElement.remove();
     }
-
     const taskIndex = tasks.findIndex(t => t._id === taskId);
     if (taskIndex > -1) {
         try {
@@ -703,7 +720,7 @@ function initCouchDBSync() {
         updateSyncStatus('offline');
     });
 
-    dbSync.setMaxListeners(20);
+    dbSync.setMaxListeners(40);
 }
 
 async function loadLocalData() {
