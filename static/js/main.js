@@ -215,9 +215,6 @@ function showNoteForm(note) {
         tinymce.get('tinymce-editor').setContent('');
         editingNoteId = null;
     }
-    taskDiv.querySelector('.task-desc').addEventListener('input', autoSaveNote);
-    taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
-    taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
 }
 
 function hideNoteForm() {
@@ -375,17 +372,10 @@ function addNoteTask(task = {}) {
     `;
     noteTasksDiv.appendChild(taskDiv);
 
-    if (taskElement) {
-        taskElement.querySelector('.task-desc').removeEventListener('input', autoSaveNote);
-        taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
-        taskElement.querySelector('.task-status').removeEventListener('change', autoSaveNote);
-
-        taskElement.remove();
-    }
-    
     taskDiv.querySelector('.task-desc').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-due-date').addEventListener('input', autoSaveNote);
     taskDiv.querySelector('.task-status').addEventListener('change', autoSaveNote);
+    
 }
 
 async function removeNoteTask(taskId, event) {
