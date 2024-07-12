@@ -35,6 +35,13 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
+
+function stripHtml(html) {
+    var tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+}
+
 function cleanUpTinyMCE() {
     if (tinymce.get('tinymce-editor')) {
         tinymce.get('tinymce-editor').destroy();
@@ -133,8 +140,13 @@ async function updateTaskOrder(event) {
 }
 
 function initFuse() {
-    fuse = new Fuse(notes, {
-        keys: ['title', 'content'],
+    const processedNotes = notes.map(note => ({
+        ...note,
+        strippedContent: stripHtml(note.content)
+    }));
+
+    fuse = new Fuse(processedNotes, {
+        keys: ['title', 'strippedContent'],
         threshold: 0.3
     });
 }
