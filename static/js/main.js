@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         height: 200,
         menubar: false,
         plugins: 'autosave lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table autolink paste',
-        toolbar: 'undo redo | formatselect | bold italic backcolor | h1 h2 h3 | bullist numlist outdent indent | removeformat | link image | fullscreen',
+        toolbar: 'undo redo | formatselect | bold italic fullscreen | h1 h2 h3 | bullist numlist outdent indent | removeformat | link image backcolor',
         autosave_interval: '30s',
         content_css: '//www.tiny.cloud/css/codepen.min.css',
         setup: function (editor) {
