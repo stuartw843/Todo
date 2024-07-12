@@ -176,7 +176,7 @@ function viewNoteModal(note) {
     noteTasksDiv.innerHTML = '';
 
     const orderedTasks = note.tasks.map(taskId => tasks.find(t => t._id === taskId)).sort((a, b) => a.isDone - b.isDone || new Date(b.updatedAt) - new Date(a.updatedAt));
-    
+
     orderedTasks.forEach(task => {
         if (task) {
             const taskDiv = document.createElement('div');
@@ -205,6 +205,7 @@ function viewNoteModal(note) {
 function hideViewNoteModal() {
     document.getElementById('view-note-modal').classList.add('hidden');
 }
+
 
 function searchNotes() {
     const searchTerm = document.getElementById('search-input').value;
@@ -239,6 +240,7 @@ function showNoteForm(note) {
         editingNoteId = null;
     }
 }
+
 
 function hideNoteForm() {
     debouncedAutoSaveNote();
