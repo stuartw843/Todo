@@ -25,34 +25,19 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    /document.addEventListener('DOMContentLoaded', (event) => {
     // Initialize TinyMCE editor
     tinymce.init({
         selector: '#tinymce-editor',
         height: 200,
         menubar: false,
-        plugins: 'autosave lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount autolink zoom',
-        toolbar: 'undo redo | formatselect | bold italic backcolor | h1 h2 h3 | bullist numlist outdent indent | removeformat | link image | zoom',
+        plugins: 'autosave lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
         autosave_interval: '30s',
-        content_css: '//www.tiny.cloud/css/codepen.min.css',
         setup: function (editor) {
             editor.on('Change', function () {
                 autoSaveNote();
             });
-        },
-        style_formats: [
-            { title: 'Heading 1', format: 'h1' },
-            { title: 'Heading 2', format: 'h2' },
-            { title: 'Heading 3', format: 'h3' },
-        ],
-        formats: {
-            h1: { block: 'h1' },
-            h2: { block: 'h2' },
-            h3: { block: 'h3' },
-        },
-        invalid_elements: 'script,iframe',
-        extended_valid_elements: 'span[*],div[*]',
-        link_context_toolbar: true,
+        }
     });
 
     initFuse();
@@ -218,6 +203,22 @@ function showNoteForm(note) {
     }
 }
 
+function hideNoteForm() {
+    autoSaveNote();
+    document.getElementById('note-modal').classList.add('hidden');
+}
+
+function toggleModalSize() {
+    const modalContent = document.querySelector('#note-modal .modal-content');
+    const toggleButton = document.getElementById('toggle-size-button');
+    modalContent.classList.toggle('expanded');
+    if (modalContent.classList.contains('expanded')) {
+        toggleButton.textContent = 'Collapse';
+    } else {
+        toggleButton.textContent = 'Expand';
+    }
+}
+
 let autoSaveTimeout;
 async function autoSaveNote() {
     clearTimeout(autoSaveTimeout);
@@ -333,23 +334,6 @@ async function autoSaveNote() {
         displayTasks();
         createSnapshot();
     }, 1000);
-                    }
-    
-
-function hideNoteForm() {
-    autoSaveNote();
-    document.getElementById('note-modal').classList.add('hidden');
-}
-
-function toggleModalSize() {
-    const modalContent = document.querySelector('#note-modal .modal-content');
-    const toggleButton = document.getElementById('toggle-size-button');
-    modalContent.classList.toggle('expanded');
-    if (modalContent.classList.contains('expanded')) {
-        toggleButton.textContent = 'Collapse';
-    } else {
-        toggleButton.textContent = 'Expand';
-    }
 }
 
 function addNoteTask(task = {}) {
