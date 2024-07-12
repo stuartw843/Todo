@@ -8,10 +8,10 @@ let deletedItems = [];
 let editingNoteId = null;
 let editingTaskId = null;
 let fuse;
-let quill;
+let editor;
 
 function toggleEditorSize() {
-    const editorContainer = document.getElementById('quill-editor-container');
+    const editorContainer = document.getElementById('tiptap-editor-container');
     const toggleIcon = document.getElementById('toggle-icon');
     const modalContent = document.querySelector('#note-modal .modal-content');
     editorContainer.classList.toggle('expanded');
@@ -26,34 +26,19 @@ function toggleEditorSize() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    // Initialize Quill editor
-    quill = new Quill('#quill-editor', {
-        theme: 'snow',
-        modules: {
-            history: {
-                delay: 2000,
-                maxStack: 500,
-                userOnly: true
-            },
-        }
+    // Initialize TipTap editor
+    editor = new tiptap.Editor({
+        element: document.querySelector('#tiptap-editor'),
+        extensions: [
+            tiptap.extensions.Markdown.configure({ html: true }),
+            tiptap.extensions.History.configure({ depth: 500 }),
+            tiptap.extensions.Placeholder.configure({ placeholder: 'Start typing your note...' }),
+        ],
+        content: '',
+        onUpdate: () => {
+            autoSaveNote();
+        },
     });
-
-    // Use MutationObserver to detect changes in the editor
-    const editorContainer = document.getElementById('quill-editor-container');
-    const config = { childList: true, subtree: true };
-    
-    const callback = function(mutationsList, observer) {
-        for (let mutation of mutationsList) {
-            if (mutation.type === 'childList') {
-                console.log('A child node has been added or removed.');
-                // Call your function that was previously triggered by DOMNodeInserted
-                autoSaveNote();
-            }
-        }
-    };
-
-    const observer = new MutationObserver(callback);
-    observer.observe(editorContainer, config);
 
     initFuse();
     loadLocalData();
@@ -71,6 +56,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
+
 async function updateTaskOrder(event) {
     const fromListId = event.from.id;
     const toListId = event.to.id;
@@ -204,7 +190,7 @@ function showNoteForm(note) {
     document.getElementById('note-tasks').innerHTML = '';
     if (note) {
         document.getElementById('note-title').value = note.title;
-        quill.root.innerHTML = converter.makeHtml(note.content);
+        editor.commands.setContent(note.content);
         note.tasks.forEach(taskId => {
             const task = tasks.find(t => t._id === taskId);
             if (task) addNoteTask(task);
@@ -212,7 +198,7 @@ function showNoteForm(note) {
         editingNoteId = note._id;
     } else {
         document.getElementById('note-title').value = '';
-        quill.root.innerHTML = '';
+        editor.commands.setContent('');
         editingNoteId = null;
     }
 }
@@ -238,7 +224,7 @@ async function autoSaveNote() {
     clearTimeout(autoSaveTimeout);
     autoSaveTimeout = setTimeout(async () => {
         const title = document.getElementById('note-title').value.trim();
-        const content = quill.root.innerHTML.trim();
+        const content = editor.getHTML();
         const taskElements = document.querySelectorAll('#note-tasks .task-item');
         const noteTasks = [];
 
