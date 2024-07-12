@@ -708,7 +708,7 @@ function initCouchDBSync() {
         retry: true,
         back_off_function: function (delay) {
             if (delay === 0) {
-                return 1000;
+                return 5000;
             }
             return delay * 1.5;
         }
