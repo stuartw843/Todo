@@ -145,6 +145,7 @@ function showPage(page) {
     document.getElementById(page + '-page').classList.remove('hidden');
     if (page === 'notes') {
         displayNotes();
+        initFuse();
     } else if (page === 'tasks') {
         displayTasks();
     }
@@ -375,10 +376,10 @@ async function autoSaveNote() {
             console.error('Error saving note:', error);
         }
         syncDataWithCouchDB();
-        initFuse();
         displayNotes();
         displayTasks();
         createSnapshot();
+        initFuse();
     }, 1000);
 }
 
@@ -448,8 +449,8 @@ async function deleteNoteModal(id) {
             await db.remove(note);
 
             syncDataWithCouchDB();
-            initFuse();
             displayNotes();
+            initFuse();
             displayTasks();
             createSnapshot();
         }
