@@ -36,9 +36,21 @@ function debounce(func, wait) {
     };
 }
 
-function stripHtml(html) {
+function stripHtmlAndNormalize(html) {
     var tmp = document.createElement("DIV");
     tmp.innerHTML = html;
+
+    // Convert bullet points and other block elements to newlines
+    tmp.querySelectorAll('ul, ol').forEach(list => {
+        list.outerHTML = '\n' + list.innerHTML + '\n';
+    });
+    tmp.querySelectorAll('li').forEach(item => {
+        item.outerHTML = '* ' + item.innerHTML + '\n';
+    });
+    tmp.querySelectorAll('p, div').forEach(block => {
+        block.outerHTML = block.innerHTML + '\n';
+    });
+
     return tmp.textContent || tmp.innerText || "";
 }
 
@@ -142,13 +154,12 @@ async function updateTaskOrder(event) {
 function initFuse() {
     const processedNotes = notes.map(note => ({
         ...note,
-        strippedContent: stripHtml(note.content)
+        strippedContent: stripHtmlAndNormalize(note.content)
     }));
 
     fuse = new Fuse(processedNotes, {
         keys: ['title', 'strippedContent'],
         threshold: 0.3,
-        findAllMatches: true
     });
 }
 
