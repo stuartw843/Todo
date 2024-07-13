@@ -147,7 +147,8 @@ function initFuse() {
 
     fuse = new Fuse(processedNotes, {
         keys: ['title', 'strippedContent'],
-        threshold: 0.3
+        threshold: 0.3,
+        findAllMatches: true
     });
 }
 
