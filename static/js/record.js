@@ -28,11 +28,16 @@ function startRecording() {
     };
 
     recognition.onresult = function(event) {
-        let transcript = '';
+        let interimTranscript = '';
+        let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-            transcript += event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
         }
-        updateNoteContent(transcript);
+        updateNoteContent(finalTranscript + interimTranscript);
     };
 
     recognition.onerror = function(event) {
@@ -41,7 +46,9 @@ function startRecording() {
     };
 
     recognition.onend = function() {
-        stopRecording();
+        if (isRecording) {
+            recognition.start(); // Restart recognition if still recording
+        }
     };
 
     recognition.start();
@@ -49,8 +56,8 @@ function startRecording() {
 
 function stopRecording() {
     if (recognition) {
-        recognition.stop();
         isRecording = false;
+        recognition.stop();
         document.getElementById('microphone-button').classList.remove('recording');
         saveFinalNote();
     }
