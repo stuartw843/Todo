@@ -373,6 +373,9 @@ button {
     margin-top: 10px;
 }
 
+#microphone-button.recording {
+    color: red;
+}
 @media (min-width: 600px) {
     .task-action-buttons button {
         width: 48%;
