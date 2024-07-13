@@ -851,6 +851,16 @@ async function clearDatabase() {
 // Add the clearDatabase function to the global scope for the button to access it
 window.clearDatabase = clearDatabase;
 
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('static/service-worker.js').then(function(registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+}
+
 showPage('notes');
 initFuse();
 loadLocalData();
