@@ -27,7 +27,7 @@
 
     Speechmatics.prototype.startTranscription = function(onData, onError) {
         var self = this;
-        var url = "wss://api.speechmatics.com/v2/realtime/ws?auth=" + this.apiKey + "&lang=" + this.language;
+        var url = "wss://neu.rt.speechmatics.com/v2/?auth=" + this.apiKey + "&lang=" + this.language;
 
         this.ws = new WebSocket(url);
 
@@ -138,8 +138,8 @@
         output.textContent = ""; // Clear previous output
         speechmatics.startTranscription(function(data) {
             if (data) {
-                if (data.metadata && data.metadata.transcript) {
-                    output.textContent += data.metadata.transcript + "\n";
+                if (data.results && data.results[0] && data.results[0].alternatives && data.results[0].alternatives[0]) {
+                    output.textContent += data.results[0].alternatives[0].transcript + "\n";
                 } else {
                     console.warn("Unexpected data format:", data);
                 }
