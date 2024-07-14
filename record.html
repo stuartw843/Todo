@@ -27,7 +27,7 @@
 
     Speechmatics.prototype.startTranscription = function(onData, onError) {
         var self = this;
-        var url = "wss://eu2.rt.speechmatics.com/v2/realtime/ws?auth=" + this.apiKey + "&lang=" + this.language;
+        var url = "wss://api.speechmatics.com/v2/realtime/ws?auth=" + this.apiKey + "&lang=" + this.language;
 
         this.ws = new WebSocket(url);
 
@@ -37,16 +37,18 @@
         };
 
         this.ws.onmessage = function(event) {
-            var data = JSON.parse(event.data);
-            console.log('WebSocket message received:', data);
+            var data;
+            try {
+                data = JSON.parse(event.data);
+            } catch (e) {
+                console.error("Error parsing WebSocket message:", e);
+                return;
+            }
 
-            if (data.message === "RecognitionStarted") {
-                console.log("Recognition started");
-            } else if (data.message === "AddTranscript") {
-                var transcript = data.results.map(result => result.alternatives[0].transcript).join("\n");
-                onData(transcript);
-            } else if (data.message === "RecognitionStopped") {
-                console.log("Recognition stopped");
+            if (data.message === "AddTranscript") {
+                onData(data);
+            } else {
+                console.log("Received non-transcript message:", data);
             }
         };
 
@@ -134,8 +136,14 @@
         }
         speechmatics = new Speechmatics(apiKey, language);
         output.textContent = ""; // Clear previous output
-        speechmatics.startTranscription(function(transcript) {
-            output.textContent += transcript + "\n";
+        speechmatics.startTranscription(function(data) {
+            if (data) {
+                if (data.metadata && data.metadata.transcript) {
+                    output.textContent += data.metadata.transcript + "\n";
+                } else {
+                    console.warn("Unexpected data format:", data);
+                }
+            }
         }, function(error) {
             console.error("Transcription error:", error);
         });
