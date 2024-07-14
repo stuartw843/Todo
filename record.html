@@ -27,7 +27,7 @@
 
     Speechmatics.prototype.startTranscription = function(onData, onError) {
         var self = this;
-        var url = "wss://api.speechmatics.com/v2/realtime/ws?auth=" + this.apiKey + "&lang=" + this.language;
+        var url = "wss://eu2.rt.speechmatics.com/v2/realtime/ws?auth=" + this.apiKey + "&lang=" + this.language;
 
         this.ws = new WebSocket(url);
 
@@ -38,16 +38,22 @@
 
         this.ws.onmessage = function(event) {
             var data = JSON.parse(event.data);
-            if (data.message === "AddTranscript") {
-                onData(data);
+            console.log('WebSocket message received:', data);
+
+            if (data.message === "RecognitionStarted") {
+                console.log("Recognition started");
+            } else if (data.message === "AddTranscript") {
+                var transcript = data.results.map(result => result.alternatives[0].transcript).join("\n");
+                onData(transcript);
+            } else if (data.message === "RecognitionStopped") {
+                console.log("Recognition stopped");
             }
         };
 
         this.ws.onerror = function(event) {
+            console.error("WebSocket error:", event);
             if (onError) {
                 onError(event);
-            } else {
-                console.error("WebSocket error:", event);
             }
         };
 
@@ -128,8 +134,8 @@
         }
         speechmatics = new Speechmatics(apiKey, language);
         output.textContent = ""; // Clear previous output
-        speechmatics.startTranscription(function(data) {
-            output.textContent += data.metadata.transcript + "\n";
+        speechmatics.startTranscription(function(transcript) {
+            output.textContent += transcript + "\n";
         }, function(error) {
             console.error("Transcription error:", error);
         });
@@ -143,8 +149,7 @@
 
     loadApiKey();
 })();
-              
-      
+        
     </script>
 </body>
 </html>
