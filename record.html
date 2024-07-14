@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speechmatics SDK</title>
+</head>
+<body>
+    <h1>Speechmatics SDK</h1>
+    <label for="api-key">API Key:</label>
+    <input type="text" id="api-key" placeholder="Enter your API key">
+    <button id="save-key-btn">Save API Key</button>
+    <button id="start-btn">Start Transcription</button>
+    <button id="stop-btn">Stop Transcription</button>
+    <pre id="output"></pre>
+
+    <script src="speechmatics-sdk.js"></script>
+    <script>
+      (function() {
+    var Speechmatics = function(apiKey, language) {
+        this.apiKey = apiKey;
+        this.language = language;
+        this.ws = null;
+        this.mediaStream = null;
+        this.mediaRecorder = null;
+    };
+
+    Speechmatics.prototype.startTranscription = function(onData, onError) {
+        var self = this;
+        var url = "wss://api.speechmatics.com/v2/realtime/ws?auth=" + this.apiKey + "&lang=" + this.language;
+
+        this.ws = new WebSocket(url);
+
+        this.ws.onopen = function() {
+            console.log("WebSocket connection opened");
+            self.startRecording();
+        };
+
+        this.ws.onmessage = function(event) {
+            var data = JSON.parse(event.data);
+            if (data.message === "AddTranscript") {
+                onData(data);
+            }
+        };
+
+        this.ws.onerror = function(event) {
+            if (onError) {
+                onError(event);
+            } else {
+                console.error("WebSocket error:", event);
+            }
+        };
+
+        this.ws.onclose = function() {
+            console.log("WebSocket connection closed");
+        };
+    };
+
+    Speechmatics.prototype.startRecording = function() {
+        var self = this;
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(stream) {
+                self.mediaStream = stream;
+                self.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                self.mediaRecorder.start(250); // Send audio data every 250ms
+
+                self.mediaRecorder.ondataavailable = function(event) {
+                    if (event.data.size > 0 && self.ws && self.ws.readyState === WebSocket.OPEN) {
+                        self.ws.send(event.data);
+                    }
+                };
+
+                self.mediaRecorder.onstop = function() {
+                    if (self.mediaStream) {
+                        self.mediaStream.getTracks().forEach(track => track.stop());
+                        self.mediaStream = null;
+                    }
+                };
+            })
+            .catch(function(err) {
+                console.error("Error accessing microphone:", err);
+            });
+    };
+
+    Speechmatics.prototype.stopTranscription = function() {
+        if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
+            this.mediaRecorder.stop();
+        }
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+    };
+
+    window.Speechmatics = Speechmatics;
+})();
+
+(function() {
+    var language = "en";
+    var speechmatics;
+    var output = document.getElementById("output");
+
+    function loadApiKey() {
+        var apiKey = localStorage.getItem("speechmaticsApiKey");
+        if (apiKey) {
+            document.getElementById("api-key").value = apiKey;
+        }
+    }
+
+    function saveApiKey() {
+        var apiKey = document.getElementById("api-key").value;
+        if (apiKey) {
+            localStorage.setItem("speechmaticsApiKey", apiKey);
+            alert("API key saved.");
+        } else {
+            alert("Please enter an API key.");
+        }
+    }
+
+    document.getElementById("save-key-btn").addEventListener("click", saveApiKey);
+
+    document.getElementById("start-btn").addEventListener("click", function() {
+        var apiKey = document.getElementById("api-key").value;
+        if (!apiKey) {
+            alert("Please enter your API key.");
+            return;
+        }
+        speechmatics = new Speechmatics(apiKey, language);
+        output.textContent = ""; // Clear previous output
+        speechmatics.startTranscription(function(data) {
+            output.textContent += data.metadata.transcript + "\n";
+        }, function(error) {
+            console.error("Transcription error:", error);
+        });
+    });
+
+    document.getElementById("stop-btn").addEventListener("click", function() {
+        if (speechmatics) {
+            speechmatics.stopTranscription();
+        }
+    });
+
+    loadApiKey();
+})();
+              
+      
+    </script>
+</body>
+</html>
