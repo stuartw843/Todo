@@ -580,8 +580,9 @@ async function saveTask() {
     const dueDate = document.getElementById('task-due-date').value;
     const status = document.getElementById('task-status').value;
     const updatedAt = new Date().toISOString();
+    let task;
     if (editingTaskId) {
-        const task = tasks.find(t => t._id === editingTaskId);
+        task = tasks.find(t => t._id === editingTaskId);
         task.description = description;
         task.dueDate = dueDate;
         task.status = status;
@@ -589,14 +590,13 @@ async function saveTask() {
         task.source = 'local';
         await db.put(task);
     } else {
-        const task = { _id: uuid.v4(), description, isDone: false, dueDate, status, updatedAt, source: 'local', type: 'task' };
+        task = { _id: uuid.v4(), description, isDone: false, dueDate, status, updatedAt, source: 'local', type: 'task' };
         tasks.push(task);
         await db.put(task);
     }
-    syncDataWithCouchDB();
     hideTaskForm();
     displayTasks();
-    displayNotes();
+    displayNotes(); // Ensure notes are updated to reflect task changes
     updateNoteTaskElement(task); // Update the task element in the note modal if open
     createSnapshot();
 }
