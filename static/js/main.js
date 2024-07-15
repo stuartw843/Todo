@@ -602,8 +602,10 @@ async function saveTask() {
 }
 
 function updateNoteTaskElement(task) {
+    console.log("Update Task element");
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${task._id}"]`);
     if (taskElement) {
+        console.log("Updating: " + task._id);
         taskElement.querySelector('.task-desc').value = task.description;
         taskElement.querySelector('.task-due-date').value = task.dueDate;
         taskElement.querySelector('.task-status').value = task.status;
