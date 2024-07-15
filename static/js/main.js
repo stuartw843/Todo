@@ -271,7 +271,7 @@ function showNoteForm(note) {
 function hideNoteForm() {
     debouncedAutoSaveNote();
     document.getElementById('note-modal').classList.add('hidden');
-    const taskElements = document.querySelectorAll('#note-tasks .task-card');
+    const taskElements = document.querySelectorAll('#note-tasks .task-item');
     taskElements.forEach(taskElement => {
         taskElement.querySelector('.task-desc').removeEventListener('input', autoSaveNote);
         taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
@@ -297,7 +297,7 @@ async function autoSaveNote() {
     autoSaveTimeout = setTimeout(async () => {
         const title = document.getElementById('note-title').value.trim();
         const content = tinymce.get('tinymce-editor').getContent();
-        const taskElements = document.querySelectorAll('#note-tasks .task-card');
+        const taskElements = document.querySelectorAll('#note-tasks .task-item');
         const noteTasks = [];
 
         if (!title && !content) {
@@ -433,7 +433,7 @@ function addNoteTask(task = {}) {
 async function removeNoteTask(taskId, event) {
     event.stopPropagation();
     
-    const taskElement = document.querySelector(`#note-tasks .task-card[data-id="${taskId}"]`);
+    const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${taskId}"]`);
     if (taskElement) {
         taskElement.querySelector('.task-desc').removeEventListener('input', autoSaveNote);
         taskElement.querySelector('.task-due-date').removeEventListener('input', autoSaveNote);
@@ -604,7 +604,8 @@ async function saveTask() {
 function updateNoteTaskElement(task) {
     console.log("Update Task element");
     console.log(task)
-    const taskElement = document.querySelector(`#note-tasks .task-card[data-id="${task._id}"]`);
+    const taskElement = document.querySelector(`#view-note-tasks .task-card[data-id="${task._id}"]`);
+    console.log(taskElement);
     if (taskElement) {
         console.log("Updating: " + task._id);
         taskElement.querySelector('.task-desc').value = task.description;
