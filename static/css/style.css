@@ -69,8 +69,8 @@ textarea {
     color: red;
 }
 
-#task-mpdal {
-    z-index: 10001;
+#task-modal {
+    z-index: 1001;
 }
 .task {
     display: flex;
