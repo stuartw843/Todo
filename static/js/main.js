@@ -608,11 +608,7 @@ function updateNoteTaskElement(task) {
     console.log(taskElement);
     if (taskElement) {
         console.log("Updating: " + task._id);
-        taskElement.querySelector('.task-desc').value = task.description;
-        taskElement.querySelector('.task-due-date').value = task.dueDate;
-        taskElement.querySelector('.task-status').value = task.status;
         taskElement.querySelector('.task-title').textContent = task.description;
-        taskElement.querySelector('.task-title').classList.toggle('task-done', task.isDone);
     }
 }
 
