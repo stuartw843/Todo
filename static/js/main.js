@@ -597,7 +597,19 @@ async function saveTask() {
     hideTaskForm();
     displayTasks();
     displayNotes();
+    updateNoteTaskElement(task); // Update the task element in the note modal if open
     createSnapshot();
+}
+
+function updateNoteTaskElement(task) {
+    const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${task._id}"]`);
+    if (taskElement) {
+        taskElement.querySelector('.task-desc').value = task.description;
+        taskElement.querySelector('.task-due-date').value = task.dueDate;
+        taskElement.querySelector('.task-status').value = task.status;
+        taskElement.querySelector('.task-title').textContent = task.description;
+        taskElement.querySelector('.task-title').classList.toggle('task-done', task.isDone);
+    }
 }
 
 async function toggleTaskDone(taskId) {
