@@ -603,6 +603,7 @@ async function saveTask() {
 
 function updateNoteTaskElement(task) {
     console.log("Update Task element");
+    console.log(task)
     const taskElement = document.querySelector(`#note-tasks .task-item[data-id="${task._id}"]`);
     if (taskElement) {
         console.log("Updating: " + task._id);
