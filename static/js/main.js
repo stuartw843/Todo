@@ -1,7 +1,7 @@
 let db = new PouchDB('notes_tasks');
 let remoteDb = null;
 const converter = new showdown.Converter();
-const statuses = ["High Impact", "Todo"];
+const statuses = ["High Impact", "Todo", "Waiting"];
 let notes = [];
 let tasks = [];
 let deletedItems = [];
@@ -99,8 +99,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     const highImpactTasks = document.getElementById('high-impact-tasks');
     const todoTasks = document.getElementById('todo-tasks');
+    const waitingTasks = document.getElementById('waiting-tasks');
 
-    [highImpactTasks, todoTasks].forEach(list => {
+    [highImpactTasks, todoTasks, waitingTasks].forEach(list => {
         new Sortable(list, {
             group: 'tasks',
             handle: '.task-handle',
@@ -120,6 +121,8 @@ async function updateTaskOrder(event) {
         newStatus = 'High Impact';
     } else if (toListId === 'todo-tasks') {
         newStatus = 'Todo';
+    } else if (toListId === 'waiting-tasks') {
+        newStatus = 'Waiting';
     }
 
     for (let i = 0; i < newOrder.length; i++) {
@@ -485,10 +488,12 @@ async function deleteNoteModal(id) {
 function displayTasks() {
     const highImpactTasksList = document.getElementById('high-impact-tasks');
     const todoTasksList = document.getElementById('todo-tasks');
+    const waitingTasksList = document.getElementById('waiting-tasks');
     const doneTasksList = document.getElementById('done-tasks');
 
     highImpactTasksList.innerHTML = '';
     todoTasksList.innerHTML = '';
+    waitingTasksList.innerHTML = '';
     doneTasksList.innerHTML = '';
 
     const renderTask = (task, list) => {
@@ -515,6 +520,7 @@ function displayTasks() {
 
     tasks.filter(task => task.status === 'High Impact').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, highImpactTasksList));
     tasks.filter(task => task.status === 'Todo').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, todoTasksList));
+    tasks.filter(task => task.status === 'Waiting').sort((a, b) => a.order - b.order).forEach(task => renderTask(task, waitingTasksList));
     tasks.filter(task => task.status === 'Done').sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).forEach(task => renderTask(task, doneTasksList));
 }
 
